@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-12-17: Fixed several links
 * 2017-02-16: Reformatting
 * 2016-10-10: Fixing small issues

@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2018-04-13: Remove duplicate Headers module from config; update title format (markdown); rewordings (Simon Studer)
 * 2017-12-17: Added STS header, renumbered 200004->200005
 * 2017-03-05: MaxClients -> MaxRequestWorkers; changed order of ModSec data folders
 * 2017-03-04: Updated stdout of curl calls

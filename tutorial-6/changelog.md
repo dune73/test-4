@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2018-04-13: Renummerating IDs for whitelisting ruleset, update title format (markdown); rewordings (Simon Studer)
 * 2018-03-03: Shifted the whitelisting rules into the rule id range from 11,000
 * 2017-12-17: Reworded the installation of additional packages; updated rule 200000; updated whitelist error log; renumbered 200004->200005
 * 2017-09-25: Update apr (1.6.2), apr-util (1.6.0), Apache (2.4.27) and ModSecurity (2.9.2)

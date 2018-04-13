@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-12-17: Fixed several links
 * 2017-03-04: Fixed IP address of VirtualHosts to 127.0.0.1, updated stdout of curl calls
 * 2017-02-25: Getting rid of AllowOverride completely

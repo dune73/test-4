@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2018-04-13: Update title format (markdown) (Simon Studer)
 * 2017-12-17: Switch apache mirror (www-eu.apache.org), update apr (1.6.3), apr-util (1.6.1) and Apache (2.4.29); rearranged package installation, replaced screenshot
 * 2017-11-12: Typo
 * 2017-09-25: Update apr (1.6.2), apr-util (1.6.0) and Apache (2.4.27)

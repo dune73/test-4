@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-09-25: Update apr (1.6.2), apr-util (1.6.0), Apache (2.4.27) and ModSecurity (2.9.2)
 * 2017-03-05: Update text about rule 942100
 * 2017-02-25: Closing quotes in rules sum-up
