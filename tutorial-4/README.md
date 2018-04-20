@@ -606,7 +606,7 @@ SSL-Session:
 ---
 ```
 
-The first few lines are very important as they list the chain. Of equal importance is the last line with the _ok_. This prooves that the chain has been checked successfully and that a secure communication channel with the server has been built.
+The first few lines are very important as they list the chain. Of equal importance is the last line with the _ok_. This proves that the chain has been checked successfully and that a secure communication channel with the server has been built.
 
 If we examine the chain on top carefully, we will see that _Let's Encrypt_ is depending on an additional  certificate authority. This is necessary as _Let's Encrypt_ is a very young certificate authority and it has not yet found its way into all browsers. This forces _Let's Encrypt_ to have it's certificate signed by a different certificate authority known to the browser.
 

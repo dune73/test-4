@@ -267,12 +267,15 @@ SecAction "id:90004,phase:5,nolog,pass,setvar:TX.ModSecTimestamp5start=%{DURATIO
 SecRule REQUEST_HEADERS:Content-Type "(?:application(?:/soap\+|/)|text/)xml" \
   "id:200000,phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=XML"
 
+SecRule REQUEST_HEADERS:Content-Type "application/json" \
+  "id:200001,phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=JSON"
+
 SecRule REQBODY_ERROR "!@eq 0" \
-  "id:200001,phase:2,t:none,deny,status:400,log,msg:'Failed to parse request body.',\
+  "id:200002,phase:2,t:none,deny,status:400,log,msg:'Failed to parse request body.',\
   logdata:'%{reqbody_error_msg}',severity:2"
 
 SecRule MULTIPART_STRICT_ERROR "!@eq 0" \
-"id:200002,phase:2,t:none,log,deny,status:403, \
+"id:200003,phase:2,t:none,log,deny,status:403, \
 msg:'Multipart request body failed strict validation: \
 PE %{REQBODY_PROCESSOR_ERROR}, \
 BQ %{MULTIPART_BOUNDARY_QUOTED}, \
@@ -839,7 +842,7 @@ SecRule REQUEST_HEADERS:Referer "@streq http://localhost/login/displayLogin.do" 
 
 This section was very important. Therefore, to summarize once again: We define a rule to suppress another rule. We use a pattern for this which lets us define a path as a condition. This enables us to disable rules for individual parts of an application but only in places where false alarms occur. And at the same time, it prevents us from disabling rules on the entire server.
 
-With this, we have seen all basic methods to handle false positives via rule exclusions. You now use the patterns for *excusion rules* described above to work through the various *false positives*. 
+With this, we have seen all basic methods to handle false positives via rule exclusions. You now use the patterns for *exclusion rules* described above to work through the various *false positives*. 
 
 ### Step 9: Readjusting the anomaly threshold
 

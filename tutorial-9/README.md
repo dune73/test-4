@@ -600,12 +600,15 @@ SecAction "id:90004,phase:5,nolog,pass,setvar:TX.ModSecTimestamp5start=%{DURATIO
 SecRule REQUEST_HEADERS:Content-Type "(?:application(?:/soap\+|/)|text/)xml" \
   "id:200000,phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=XML"
 
+SecRule REQUEST_HEADERS:Content-Type "application/json" \
+  "id:200001,phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=JSON"
+
 SecRule REQBODY_ERROR "!@eq 0" \
-  "id:200001,phase:2,t:none,deny,status:400,log,msg:'Failed to parse request body.',\
+  "id:200002,phase:2,t:none,deny,status:400,log,msg:'Failed to parse request body.',\
 logdata:'%{reqbody_error_msg}',severity:2"
 
 SecRule MULTIPART_STRICT_ERROR "!@eq 0" \
-"id:200002,phase:2,t:none,log,deny,status:403, \
+"id:200003,phase:2,t:none,log,deny,status:403, \
 msg:'Multipart request body failed strict validation: \
 PE %{REQBODY_PROCESSOR_ERROR}, \
 BQ %{MULTIPART_BOUNDARY_QUOTED}, \
