@@ -76,7 +76,7 @@ function wait_process_disappears() {
 
 VERBOSE=0
 
-AP_CONFS_PATTERN="/etc/apache2/apache2.conf /apache/conf/httpd.conf_* /opt/apache*/conf/httpd.conf_*"
+AP_CONFS_PATTERN="/etc/apache2/apache2.conf /apache/conf/httpd.conf /apache/conf/httpd.conf_* /opt/apache*/conf/httpd.conf_*"
 AP_CONF_FILE=$(ls -tr $AP_CONFS_PATTERN 2>/dev/null | tail -1)
 
 if [ ! -f $AP_CONF_FILE ]; then
