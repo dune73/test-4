@@ -37,6 +37,7 @@ alias aldurationout='cut -d\" -f9 | cut -d\  -f11'
 alias alscorein='cut -d\" -f9 | cut -d\  -f12 | tr "-" "0"'
 alias alscoreout='cut -d\" -f9 | cut -d\  -f13 | tr "-" "0"'
 alias alscores='cut -d\" -f9 | cut -d\  -f12,13 | tr " " ";" | tr "-" "0"'
+alias altimestatusmethoduri="awk '{ print \$4 \" \" \$5 \" \" \$9 \" \" \$6 \" \" \$7}' | tr -d \\\""
 
 alias col1='awk "{ print \$1 }"'
 alias col2='awk "{ print \$2 }"'
