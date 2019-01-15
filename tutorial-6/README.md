@@ -662,7 +662,7 @@ It works from top to bottom and it seems the behaviour is just what we expected.
 Before coming to the end of this tutorial here’s one more tip that often proves useful in practice: _ModSecurity_ is not just a _Web Application Firewall_. It is also a very precise debugging tool. The entire traffic between client and server can be logged. This is done as follows:
 
 ```bash
-SecRule REMOTE_ADDR  "@streq 127.0.0.1"   "id:11000,phase:1,pass,log,auditlog,\
+SecRule REMOTE_ADDR  "@streq 127.0.0.1"   "id:10100,phase:1,pass,log,auditlog,\
 	msg:'Initializing full traffic log'"
 ```
 We then find the traffic for the client 127.0.0.1 specified in the rule in the audit log.
