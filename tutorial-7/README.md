@@ -416,7 +416,7 @@ As predicted, we have not been blocked, but let's check the logs to see if anyth
 ```bash
 $> tail -1 /apache/logs/access.log
 127.0.0.1 - - [2016-10-25 08:40:01.881647] "GET /index.html?exec=/bin/bash HTTP/1.1" 200 48 "-" …
-"curl/7.35.0" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
+"curl/7.47.0" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
 117 479 5 0
 ```
 
@@ -570,7 +570,7 @@ ID=$(echo "$STR" | sed -e "s/.*\ //"); grep $ID logs/error.log | head -1 | melms
 111 932160 Remote Command Execution: Unix Shell Code Found
 113 941180 Node-Validator Blacklist Keywords
 114 920270 Invalid character in request (null character)
-140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
+140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name …
 166 930120 OS File Access Attempt
 172 930100 Path Traversal Attack (/../)
 224 920440 URL file extension is restricted by policy
@@ -578,7 +578,7 @@ ID=$(echo "$STR" | sed -e "s/.*\ //"); grep $ID logs/error.log | head -1 | melms
 247 941100 XSS Attack Detected via libinjection
 247 941160 NoScript XSS InjectionChecker: HTML Injection
 448 930110 Path Traversal Attack (/../)
-2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
+2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question …
 2328 913120 Found request filename/argument associated with security scanner
 6168 913100 Found User-Agent associated with security scanner
 ```
