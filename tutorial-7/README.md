@@ -24,26 +24,26 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 
 ```
 $> cd /apache/conf
-$> wget https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.0.2.tar.gz
-$> tar xvzf v3.0.2.tar.gz
-owasp-modsecurity-crs-3.0.2/
-owasp-modsecurity-crs-3.0.2/CHANGES
-owasp-modsecurity-crs-3.0.2/IDNUMBERING
-owasp-modsecurity-crs-3.0.2/INSTALL
-owasp-modsecurity-crs-3.0.2/KNOWN_BUGS
-owasp-modsecurity-crs-3.0.2/LICENSE
-owasp-modsecurity-crs-3.0.2/README.md
-owasp-modsecurity-crs-3.0.2/crs-setup.conf.example
-owasp-modsecurity-crs-3.0.2/documentation/
-owasp-modsecurity-crs-3.0.2/documentation/OWASP-CRS-Documentation/
-owasp-modsecurity-crs-3.0.2/documentation/README
+$> wget https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.1.0.tar.gz
+$> tar xvzf v3.1.0.tar.gz
+owasp-modsecurity-crs-3.1.0/
+owasp-modsecurity-crs-3.1.0/CHANGES
+owasp-modsecurity-crs-3.1.0/IDNUMBERING
+owasp-modsecurity-crs-3.1.0/INSTALL
+owasp-modsecurity-crs-3.1.0/KNOWN_BUGS
+owasp-modsecurity-crs-3.1.0/LICENSE
+owasp-modsecurity-crs-3.1.0/README.md
+owasp-modsecurity-crs-3.1.0/crs-setup.conf.example
+owasp-modsecurity-crs-3.1.0/documentation/
+owasp-modsecurity-crs-3.1.0/documentation/OWASP-CRS-Documentation/
+owasp-modsecurity-crs-3.1.0/documentation/README
 ...
-$> sudo ln -s owasp-modsecurity-crs-3.0.2 /apache/conf/crs
+$> sudo ln -s owasp-modsecurity-crs-3.1.0 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
-$> rm v3.0.2.tar.gz
+$> rm v3.1.0.tar.gz
 ```
 
-This unpacks the base part of the Core Rule Set in the directory `/apache/conf/owasp-modsecurity-crs-3.0.2`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
+This unpacks the base part of the Core Rule Set in the directory `/apache/conf/owasp-modsecurity-crs-3.1.0`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
 
 The setup file allows us to tweak many different settings. It is worth a look - if only to see what is included. However, we are OK with the default settings and will not touch the file: We just make sure it is available under the new filename `crs-setup.conf`. Then we can continue to update the configuration to include the rules files.
 
@@ -429,7 +429,7 @@ authorization result of <RequireAny>: granted
 ModSecurity: Warning. Matched phrase "/bin/bash" at ARGS:exec. …
 [file "/apache/conf/crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf"] [line "448"] [id "932160"] …
 [rev "1"] [msg "Remote Command Execution: Unix Shell Code Found"] [data "Matched Data: /bin/bash found …
-within ARGS:exec: /bin/bash"] [severity "CRITICAL"] [ver "OWASP_CRS/3.0.2"] [maturity "1"] [accuracy "8"] …
+within ARGS:exec: /bin/bash"] [severity "CRITICAL"] [ver "OWASP_CRS/3.1.0"] [maturity "1"] [accuracy "8"] …
 [tag "application-multi"] [tag "language-shell"] [tag "platform-unix"] [tag "attack-rce"] …
 [tag "OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION"] [tag "WASCTC/WASC-31"] [tag "OWASP_TOP_10/A1"] …
 [tag "PCI/6.5.2"] [hostname "localhost"] [uri "/index.html"] [unique_id "WA7@QX8AAQEAABC4maIAAAAV"]
@@ -467,11 +467,11 @@ $> nikto -h localhost
 + 1 host(s) tested
 ```
 
-This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 7,300 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 8.8 MB logfile. Looking over the audit log tree reveals 78 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
+This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 13,300 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 11 MB logfile. Looking over the audit log tree reveals 92 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
 
 ### Step 5: Analyzing the alert messages
 
-So we are looking at 7,300 alerts. And even if the format of the entries in the error log may be clear, without a tool they are very hard to read, let alone analyze. A simple remedy is to use a few *shell aliases*, which extract individual pieces of information from the entries. They are stored in the alias file we discussed in the log format in Tutorial 5.
+So we are looking at 13,000 alerts. And even if the format of the entries in the error log may be clear, without a tool they are very hard to read, let alone analyze. A simple remedy is to use a few *shell aliases*, which extract individual pieces of information from the entries. They are stored in the alias file we discussed in the log format in Tutorial 5.
 
 ```
 $> cat ~/.apache-modsec.alias
@@ -495,16 +495,16 @@ These abbreviations all start with the prefix *mel*, short for *ModSecurity erro
 
 ```
 $> cat logs/error.log | melid | tail
-941160
 920440
+913100
+913100
+913100
+913100
+913100
+913100
+913100
+913100
 920440
-911100
-920100
-930100
-930110
-930110
-930120
-932160
 ```
 
 This seems to do the job. So let’s extend the example a few steps:
@@ -512,77 +512,71 @@ This seems to do the job. So let’s extend the example a few steps:
 ```
 $> cat logs/error.log | melid | sort | uniq -c | sort -n
       1 920220
-      1 920290
-      1 921150
       1 932115
       2 920280
       2 941140
       3 942270
-      4 920420
       4 933150
+      5 942100
       6 932110
-      9 911100
-     11 920100
-     12 942100
-     13 920430
+      7 911100
+      8 932105
      13 932100
-     13 932105
      15 941170
      15 941210
      17 920170
+     29 930130
      35 932150
      67 933130
      70 933160
-    115 941180
-    136 920270
-    139 932160
-    141 931110
-    191 930100
-    219 920440
-    219 930120
-    246 941110
-    248 941100
-    249 941160
-    531 930110
-   2274 931120
-   2340 913120
+    111 932160
+    113 941180
+    114 920270
+    140 931110
+    166 930120
+    172 930100
+    224 920440
+    245 941110
+    247 941100
+    247 941160
+    448 930110
+   2262 931120
+   2328 913120
+   6168 913100
 $> cat logs/error.log | melid | sort | uniq -c | sort -n | while read STR; do echo -n "$STR "; \
 ID=$(echo "$STR" | sed -e "s/.*\ //"); grep $ID logs/error.log | head -1 | melmsg; done
 1 920220 URL Encoding Abuse Attack Attempt
-1 920290 Empty Host Header
-1 921150 HTTP Header Injection Attack via payload (CR/LF deteced)
 1 932115 Remote Command Execution: Windows Command Injection
 2 920280 Request Missing a Host Header
 2 941140 XSS Filter - Category 4: Javascript URI Vector
 3 942270 Looking for basic sql injection. Common attack string for mysql, oracle and others.
-4 920420 Request content type is not allowed by policy
 4 933150 PHP Injection Attack: High-Risk PHP Function Name Found
+5 942100 SQL Injection Attack Detected via libinjection
 6 932110 Remote Command Execution: Windows Command Injection
-9 911100 Method is not allowed by policy
-11 920100 Invalid HTTP Request Line
-12 942100 SQL Injection Attack Detected via libinjection
-13 920430 HTTP protocol version is not allowed by policy
+7 911100 Method is not allowed by policy
+8 932105 Remote Command Execution: Unix Command Injection
 13 932100 Remote Command Execution: Unix Command Injection
-13 932105 Remote Command Execution: Unix Command Injection
 15 941170 NoScript XSS InjectionChecker: Attribute Injection
 15 941210 IE XSS Filters - Attack Detected.
 17 920170 GET or HEAD Request with Body Content.
+29 930130 Restricted File Access Attempt
 35 932150 Remote Command Execution: Direct Unix Command Execution
 67 933130 PHP Injection Attack: Variables Found
 70 933160 PHP Injection Attack: High-Risk PHP Function Call Found
-115 941180 Node-Validator Blacklist Keywords
-136 920270 Invalid character in request (null character)
-139 932160 Remote Command Execution: Unix Shell Code Found
-141 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name  …
-191 930100 Path Traversal Attack (/../)
-219 920440 URL file extension is restricted by policy
-219 930120 OS File Access Attempt
-246 941110 XSS Filter - Category 1: Script Tag Vector
-248 941100 XSS Attack Detected via libinjection
-249 941160 NoScript XSS InjectionChecker: HTML Injection
-531 930110 Path Traversal Attack (/../)
-2274 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question …
-2340 913120 Found request filename/argument associated with security scanner
+111 932160 Remote Command Execution: Unix Shell Code Found
+113 941180 Node-Validator Blacklist Keywords
+114 920270 Invalid character in request (null character)
+140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
+166 930120 OS File Access Attempt
+172 930100 Path Traversal Attack (/../)
+224 920440 URL file extension is restricted by policy
+245 941110 XSS Filter - Category 1: Script Tag Vector
+247 941100 XSS Attack Detected via libinjection
+247 941160 NoScript XSS InjectionChecker: HTML Injection
+448 930110 Path Traversal Attack (/../)
+2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
+2328 913120 Found request filename/argument associated with security scanner
+6168 913100 Found User-Agent associated with security scanner
 ```
 
 This, we can work with. But it’s perhaps necessary to explain the *one-liners*. We extract the rule IDs from the *error log*, then *sort* them, sum them together in a list of found IDs (*uniq -c*) and sort again by the numbers found. That’s the first *one-liner*. A relationship between the individual rules is still lacking, because there’s not much we can do with the ID number yet. We get the names from the *error log* again by looking through the previously run test line-by-line in a loop. We out the ID that we have into this loop (`$STR`). Then we have to separate the number of found items and the IDs again. This is done using an embedded sub-command (`ID=$(echo "$STR" | sed -e "s/.*\ //")`). We then use the IDs we just found to search the *error log* once more for an entry, but take only the first one, extract the *msg* part and display it. Done.
@@ -598,40 +592,37 @@ cut -d\  -f2- | tr -d "\]\"" | sed -e "s/(Total .*/(Total ...) .../"'
 ```bash
 $> cat logs/error.log | melidmsg | sucs
       1 920220 URL Encoding Abuse Attack Attempt
-      1 920290 Empty Host Header
-      1 921150 HTTP Header Injection Attack via payload (CR/LF deteced)
       1 932115 Remote Command Execution: Windows Command Injection
       2 920280 Request Missing a Host Header
       2 941140 XSS Filter - Category 4: Javascript URI Vector
-      3 942270 Looking for basic sql injection. Common attack string for mysql, oracle …
-      4 920420 Request content type is not allowed by policy
+      3 942270 Looking for basic sql injection. Common attack string for mysql, oracle and others.
       4 933150 PHP Injection Attack: High-Risk PHP Function Name Found
+      5 942100 SQL Injection Attack Detected via libinjection
       6 932110 Remote Command Execution: Windows Command Injection
-      9 911100 Method is not allowed by policy
-     11 920100 Invalid HTTP Request Line
-     12 942100 SQL Injection Attack Detected via libinjection
-     13 920430 HTTP protocol version is not allowed by policy
+      7 911100 Method is not allowed by policy
+      8 932105 Remote Command Execution: Unix Command Injection
      13 932100 Remote Command Execution: Unix Command Injection
-     13 932105 Remote Command Execution: Unix Command Injection
      15 941170 NoScript XSS InjectionChecker: Attribute Injection
      15 941210 IE XSS Filters - Attack Detected.
      17 920170 GET or HEAD Request with Body Content.
+     29 930130 Restricted File Access Attempt
      35 932150 Remote Command Execution: Direct Unix Command Execution
      67 933130 PHP Injection Attack: Variables Found
      70 933160 PHP Injection Attack: High-Risk PHP Function Call Found
-    115 941180 Node-Validator Blacklist Keywords
-    136 920270 Invalid character in request (null character)
-    139 932160 Remote Command Execution: Unix Shell Code Found
-    141 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter …
-    191 930100 Path Traversal Attack (/../)
-    219 920440 URL file extension is restricted by policy
-    219 930120 OS File Access Attempt
-    246 941110 XSS Filter - Category 1: Script Tag Vector
-    248 941100 XSS Attack Detected via libinjection
-    249 941160 NoScript XSS InjectionChecker: HTML Injection
-    531 930110 Path Traversal Attack (/../)
-   2274 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing …
-   2340 913120 Found request filename/argument associated with security scanner
+    111 932160 Remote Command Execution: Unix Shell Code Found
+    113 941180 Node-Validator Blacklist Keywords
+    114 920270 Invalid character in request (null character)
+    140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
+    166 930120 OS File Access Attempt
+    172 930100 Path Traversal Attack (/../)
+    224 920440 URL file extension is restricted by policy
+    245 941110 XSS Filter - Category 1: Script Tag Vector
+    247 941100 XSS Attack Detected via libinjection
+    247 941160 NoScript XSS InjectionChecker: HTML Injection
+    448 930110 Path Traversal Attack (/../)
+   2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
+   2328 913120 Found request filename/argument associated with security scanner
+   6168 913100 Found User-Agent associated with security scanner
 ```
 
 So that's something we can work with. It shows that the Core Rules detected a lot of malicious requests and we now have an idea which rules played a role in this. The rule triggered most frequently, 913120, is no surprise, and when you look upwards in the output, this all makes a lot of sense.
