@@ -100,32 +100,36 @@ The second rule, id `900000`, defines the _Paranoia Level_ to 1. The Core Rules 
 The center of the previous config snippet follows the include statement, which loads all files with suffix `.conf` from the rules sub folder in the CRS directory. This is where all the rules are being loaded. Let's take a look at them:
 
 ```bash
-$> ls -1
-crs/rules/REQUEST-901-INITIALIZATION.conf
-crs/rules/REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
-crs/rules/REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
-crs/rules/REQUEST-905-COMMON-EXCEPTIONS.conf
-crs/rules/REQUEST-910-IP-REPUTATION.conf
-crs/rules/REQUEST-911-METHOD-ENFORCEMENT.conf
-crs/rules/REQUEST-912-DOS-PROTECTION.conf
-crs/rules/REQUEST-913-SCANNER-DETECTION.conf
-crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf
-crs/rules/REQUEST-921-PROTOCOL-ATTACK.conf
-crs/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf
-crs/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf
-crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf
-crs/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf
-crs/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf
-crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf
-crs/rules/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
-crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf
-crs/rules/RESPONSE-950-DATA-LEAKAGES.conf
-crs/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf
-crs/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf
-crs/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf
-crs/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf
-crs/rules/RESPONSE-959-BLOCKING-EVALUATION.conf
-crs/rules/RESPONSE-980-CORRELATION.conf
+$> ls -1 conf/crs/rules/*.conf
+conf/crs/rules/REQUEST-901-INITIALIZATION.conf
+conf/crs/rules/REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9004-DOKUWIKI-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9005-CPANEL-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-905-COMMON-EXCEPTIONS.conf
+conf/crs/rules/REQUEST-910-IP-REPUTATION.conf
+conf/crs/rules/REQUEST-911-METHOD-ENFORCEMENT.conf
+conf/crs/rules/REQUEST-912-DOS-PROTECTION.conf
+conf/crs/rules/REQUEST-913-SCANNER-DETECTION.conf
+conf/crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+conf/crs/rules/REQUEST-921-PROTOCOL-ATTACK.conf
+conf/crs/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf
+conf/crs/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf
+conf/crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf
+conf/crs/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf
+conf/crs/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf
+conf/crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf
+conf/crs/rules/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
+conf/crs/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf
+conf/crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf
+conf/crs/rules/RESPONSE-950-DATA-LEAKAGES.conf
+conf/crs/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf
+conf/crs/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf
+conf/crs/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf
+conf/crs/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf
+conf/crs/rules/RESPONSE-959-BLOCKING-EVALUATION.conf
+conf/crs/rules/RESPONSE-980-CORRELATION.conf
 ```
 
 The rule files are grouped by request and response rules. We start off with an initialization rule file. There are a lot of things commented out in the `crs-setup.conf` file. These values are simply set to their default value in the 901 rule file. This helps keep the config neat and tidy and still have all default settings applied. Then we have two application specific rule files for Wordpress and Drupal, followed by an exceptions file that is mostly irrelevant to us. Starting with 910, we have the real rules.
@@ -449,20 +453,20 @@ With this, we have covered the full alert message that led to the inbound anomal
 
 ```bash
 $> nikto -h localhost
-- Nikto v2.1.4
+- Nikto v2.1.5
 ---------------------------------------------------------------------------
 + Target IP:          127.0.0.1
 + Target Hostname:    localhost
 + Target Port:        80
-+ Start Time:         2016-10-26 10:07:07
++ Start Time:         2019-03-21 07:50:40 (GMT1)
 ---------------------------------------------------------------------------
 + Server: Apache
++ Server leaks inodes via ETags, header found with file /, fields: 0x2d 0x56852b3a6389e 
++ The anti-clickjacking X-Frame-Options header is not present.
 + No CGI Directories found (use '-C all' to force check all possible dirs)
-+ ETag header found on server, fields: 0x30 0x53ab921464f15 
-+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS 
-+ /login.php: Admin login page/section found.
-+ 6448 items checked: 0 error(s) and 3 item(s) reported on remote host
-+ End Time:           2016-10-26 10:07:57 (50 seconds)
++ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD 
++ 6544 items checked: 0 error(s) and 3 item(s) reported on remote host
++ End Time:           2019-03-21 07:51:19 (GMT1) (39 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
 ```
@@ -741,7 +745,7 @@ Especially at higher paranoia levels, there are rules that just fail to work wit
 $> curl -v -H "Accept: " http://localhost/index.html
 ...
 > GET /index.html HTTP/1.1
-> User-Agent: curl/7.32.0
+> User-Agent: curl/7.47.0
 > Host: localhost
 ...
 $> tail /apache/logs/error.log | melidmsg
