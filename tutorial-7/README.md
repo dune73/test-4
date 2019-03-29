@@ -490,6 +490,7 @@ alias melfile='grep -o "\[file [^]]*" | cut -d\" -f2'
 alias melhostname='grep -o "\[hostname [^]]*" | cut -d\" -f2'
 alias melid='grep -o "\[id [^]]*" | cut -d\" -f2'
 alias melip='grep -o "\[client [^]]*" | cut -b9-'
+alias melidmsg='sed -e "s/.*\[id \"//" -e "s/\([0-9]*\).*\[msg \"/\1 /" -e "s/\"\].*//" -e "s/(Total .*/(Total ...) .../" -e "s/Incoming and Outgoing Score: [0-9]* [0-9]*/Incoming and Outgoing Score: .../"
 alias melline='grep -o "\[line [^]]*" | cut -d\" -f2'
 alias melmatch='grep -o " at [^\ ]*\. \[file" | sed -e "s/\. \[file//" | cut -b5-'
 alias melmsg='grep -o "\[msg [^]]*" | cut -d\" -f2'
