@@ -653,23 +653,20 @@ In Tutorial 5 we worked with a sample log file containing 10,000 entries. We’l
 
 ```
 $> egrep -o "[0-9-]+ [0-9-]+$" tutorial-5-example-access.log | cut -d\  -f1 | sucs
-      1 21
-      2 41
-      8 5
-     11 2
-     17 3
-     41 -
-   9920 0
+      3 10
+      5 3
+      6 2
+     55 5
+   9931 0
 $> egrep -o "[0-9-]+$" tutorial-5-example-access.log | sucs
-     41 -
-   9959 0
+  10000 0
 ```
 
 The first command line reads the inbound *anomaly score*. It’s the second-to-last value in the *access log line*. We take the two last values (*egrep*) and then *cut* the first one out. We then sort the results using the familiar *sucs* alias. The outbound *anomaly score* is the last value in the *log line*. This is why there is no *cut* command on the second command line.
 
-The results give us an idea of the situation: The vast majority of requests pass the *ModSecurity module* with no rule violation: 9920 requests with score 0. 80 requests violated one or more rules. This is not a standard situation for the Core Rules. In fact, I provoked additional false alarms to give us something to look at. The Core Rule Set is so optimized these days that you need a lot of traffic to get a reasonable amount of alerts - or you need to raise the paranoia level very high on a non-tuned system.
+The results give us an idea of the situation: The vast majority of requests pass the *ModSecurity module* with no rule violation: 9931 requests with score 0. 69 requests violated one or more rules. This is not a standard situation for the Core Rules. In fact, I provoked additional false alarms to give us something to look at. The Core Rule Set is so optimized these days that you need a lot of traffic to get a reasonable amount of alerts - or you need to raise the paranoia level very high on a non-tuned system.
 
-A score of 41 appears twice, corresponding to a high number of serious rule infractions. This is very common in practice, where a serious SQL injection attempt sets off a series of alarms. In 41 cases, we didn’t get any score for the server’s responses. These are log entries of empty requests in which a connection with the client was established, but no request was made. We have taken this possibility into account in the regular expression using *egrep* and are also taking into account the default value, "-". Besides these empty entries, nothing else is conspicuous at all. This is typical, if a bit high. In all likelihood, we will be seeing a fair number of violations from the requests and very few alarms from the responses.
+A score of 10 appears three times, corresponding to two violations in the same request (most rules score 5 points when violated), which is fairly standard in practice. In all likelihood, we will be seeing a fair number of violations from the requests and very few alarms from the responses; 0 in our example above.
 
 But this still doesn’t give us the right idea about the *tuning steps* that would be needed to run this install smoothly. To present this information in a suitable form, I have prepared a ruby script that analyzes *anomaly scores*. You can download the script here: [modsec-positive-stats.rb](https://www.netnea.com/files/modsec-positive-stats.rb) and place it in your private _bin_ directory (You might have to install the _ruby_ package to get it working). It takes the two anomaly scores as input and we need to separate them with a semicolon in order to pipe them into the script. We can do this like this:
 
@@ -678,60 +675,29 @@ $> cat tutorial-5-example-access.log  | egrep -o "[0-9-]+ [0-9-]+$" | tr " " ";"
 INCOMING                     Num of req. | % of req. |  Sum of % | Missing %
 Number of incoming req. (total) |  10000 | 100.0000% | 100.0000% |   0.0000%
 
-Empty or miss. incoming score   |     41 |   0.4100% |   0.4100% |  99.5900%
-Reqs with incoming score of   0 |   9920 |  99.2000% |  99.6100% |   0.3900%
-Reqs with incoming score of   1 |      0 |   0.0000% |  99.6100% |   0.3900%
-Reqs with incoming score of   2 |     11 |   0.1100% |  99.7200% |   0.2800%
-Reqs with incoming score of   3 |     17 |   0.1699% |  99.8900% |   0.1100%
-Reqs with incoming score of   4 |      0 |   0.0000% |  99.8900% |   0.1100%
-Reqs with incoming score of   5 |      8 |   0.0800% |  99.9700% |   0.0300%
+Empty or miss. incoming score   |      0 |   0.0000% |   0.0000% | 100.0000%
+Reqs with incoming score of   0 |   9931 |  99.3100% |  99.3100% |   0.6900%
+Reqs with incoming score of   1 |      0 |   0.0000% |  99.3100% |   0.6900%
+Reqs with incoming score of   2 |      6 |   0.0600% |  99.3700% |   0.6300%
+Reqs with incoming score of   3 |      5 |   0.0500% |  99.4200% |   0.5800%
+Reqs with incoming score of   4 |      0 |   0.0000% |  99.4200% |   0.5800%
+Reqs with incoming score of   5 |     55 |   0.5499% |  99.9700% |   0.0300%
 Reqs with incoming score of   6 |      0 |   0.0000% |  99.9700% |   0.0300%
 Reqs with incoming score of   7 |      0 |   0.0000% |  99.9700% |   0.0300%
 Reqs with incoming score of   8 |      0 |   0.0000% |  99.9700% |   0.0300%
 Reqs with incoming score of   9 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  10 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  11 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  12 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  13 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  14 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  15 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  16 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  17 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  18 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  19 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  20 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  21 |      1 |   0.0100% |  99.9800% |   0.0200%
-Reqs with incoming score of  22 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  23 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  24 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  25 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  26 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  27 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  28 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  29 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  30 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  31 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  32 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  33 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  34 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  35 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  36 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  37 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  38 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  39 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  40 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  41 |      2 |   0.0200% | 100.0000% |   0.0000%
+Reqs with incoming score of  10 |      3 |   0.0300% | 100.0000% |   0.0000%
 
-Average:   0.0217        Median   0.0000         Standard deviation   0.6490
+Incoming average:   0.0332    Median   0.0000    Standard deviation   0.4163
 
 
 OUTGOING                     Num of req. | % of req. |  Sum of % | Missing %
 Number of outgoing req. (total) |  10000 | 100.0000% | 100.0000% |   0.0000%
 
-Empty or miss. incoming score   |     41 |   0.4100% |   0.4100% |  99.5900%
-Reqs with outgoing score of   0 |   9959 |  99.5900% | 100.0000% |   0.0000%
+Empty or miss. outgoing score   |      0 |   0.0000% |   0.0000% | 100.0000%
+Reqs with outgoing score of   0 |  10000 | 100.0000% | 100.0000% |   0.0000%
 
-Average:   0.0000        Median   0.0000         Standard deviation   0.0000
+Outgoing average:   0.0000    Median   0.0000    Standard deviation   0.0000
 ```
 
 The script divides the inbound from the outbound *anomaly scores*. The incoming ones are handled first. Before the script can handle the scores, it describes how often an empty *anomaly score* has been found (*empty incoming score*). In our case, this was 41 times, as we saw before. Then comes the statement about *score 0*: 9920 requests. This is covering 99.2% of the requests. Together with the empty scores, this is already covering 99.61% (*Sum of %*). 0.39% had a higher *anomaly score* (*Missing %*). Above, we set out to have 99.99% of requests able to pass the server. We are about 0.38% or 38 requests away from this target. The next *anomaly score* is 2. It appears 11 times or 0.11%. The *anomaly score* 3 appears 17 times and a score of 5 can be seen 8 times. All in all, we are at 99.97%. Then there is one request with a score of 21 and finally 2 requests with with a score of 41. To achieve 99.99% coverage we have get to this limit (and, based on the log file, thus achieve 100% coverage).
