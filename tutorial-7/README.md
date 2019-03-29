@@ -25,8 +25,13 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 ```
 $> cd /apache/conf
 $> wget https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.1.0.tar.gz
-$> tar xvzf v3.1.0.tar.gz
+$> tar -xvzf v3.1.0.tar.gz
 owasp-modsecurity-crs-3.1.0/
+owasp-modsecurity-crs-3.1.0/.github/
+owasp-modsecurity-crs-3.1.0/.github/ISSUE_TEMPLATE.md
+owasp-modsecurity-crs-3.1.0/.gitignore
+owasp-modsecurity-crs-3.1.0/.gitmodules
+owasp-modsecurity-crs-3.1.0/.travis.yml
 owasp-modsecurity-crs-3.1.0/CHANGES
 owasp-modsecurity-crs-3.1.0/IDNUMBERING
 owasp-modsecurity-crs-3.1.0/INSTALL
