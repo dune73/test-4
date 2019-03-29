@@ -446,7 +446,7 @@ Let’s take a closer look at the log file.
 Further above we discussed encryption protocols and how their analyses was a foundation for deciding on an appropriate reaction to the _POODLE_ vulnerability. In practice, which encryption protocols are actually on the server since then:
 
 ```bash
-$> cat tutorial-5-example-access.log | cut -d\" -f9 | cut -d\  -f3 | sort | uniq -c | sort -n
+$> cat tutorial-5-example-access.log | cut -d\" -f11 | cut -d\  -f3 | sort | uniq -c | sort -n
       4 -
     155 TLSv1
    9841 TLSv1.2
