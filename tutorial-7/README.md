@@ -498,7 +498,6 @@ alias meltimestamp='cut -b2-25'
 alias melunique_id='grep -o "\[unique_id [^]]*" | cut -d\" -f2'
 alias meluri='grep -o "\[uri [^]]*" | cut -d\" -f2'
 ...
-$> source ~/.apache-modsec.alias 
 ```
 
 These abbreviations all start with the prefix *mel*, short for *ModSecurity error log*, followed by the field name. Let’s try it out to output the rule IDs from the messages:
