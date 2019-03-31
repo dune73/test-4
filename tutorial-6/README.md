@@ -515,7 +515,7 @@ SecRule REQUEST_URI "!@beginsWith /login" \
 
 # Validate HTTP method
 SecRule REQUEST_METHOD "!@pm GET HEAD POST OPTIONS" \
-    "id:11100,phase:1,deny,log,tag:'Login Whitelist',\
+    "id:11100,phase:1,deny,status:405,log,tag:'Login Whitelist',\
     msg:'Method %{MATCHED_VAR} not allowed'"
 
 # Validate URIs
@@ -580,7 +580,7 @@ In the two following rules (ID 11001 and 11002) we check whether our set of rule
 
 Having established the fact that we are dealing with a login request, we can now write down our rules checking these request. An HTTP request has several characteristics that are of concern to us: The method, the path, the query string parameter as well as any post parameters (this concerns the submission of a login form). We will leave out the request headers including cookies in this example, but they could also become a vulnerability depending on the application and should also be queried then.
 
-First, we look at the HTTP method in rule ID 11100. Displaying the login form is going to be a _GET_ request; submitting the credentials will be a _POST_ request. Some clients like to issue _HEAD_ and _OPTIONS_ requests as well and not much harm is done by permitting these requests. Everything else, _PUT_ and _DELETE_ and all the webdav methods, are being blocked by this rule. We check the four whitelisted methods with a parallel matching operator (`@pm`). This is faster then a regular expression and it is also more readable.
+First, we look at the HTTP method in rule ID 11100. Displaying the login form is going to be a _GET_ request; submitting the credentials will be a _POST_ request. Some clients like to issue _HEAD_ and _OPTIONS_ requests as well and not much harm is done by permitting these requests. Everything else, _PUT_ and _DELETE_ and all the webdav methods, are being blocked by this rule. We check the four whitelisted methods with a parallel matching operator (`@pm`). This is faster then a regular expression and it is also more readable. Because we want to follow best practices, we do not simply return the default status code 403 (Forbidden), but we return 405 which indicates to the client, that the method is not allowed.
 
 In the rule block starting at rule ID 11200, we examine the URL in detail. We establish three folders, where we allow access to static files: `/login/static/css/`, `/login/static/img/` and `/login/static/js/`. We do not want to micromanage the individual files retrieved from these folders, so we simply allow access to these folders. The rule ID 11250 is different. It defines the targets of the dynamic requests of the users. We construct a regular expression which allows exactly three URIs: `/login/displayLogin.do`, `/login/login.do` and `/login/logout.do`. Anything outside this list is going to be forbidden.
 
