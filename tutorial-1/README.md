@@ -114,7 +114,7 @@ We’ll now download the checksum of the source code file from Apache. At least 
 
 ```bash
 $> wget https://www.apache.org/dist/httpd/httpd-2.4.38.tar.bz2.sha256
-$> sha256sum --check httpd-.tar.bz2.sha256
+$> sha256sum --check httpd-2.4.38.tar.bz2.sha256
 httpd-2.4.38.tar.bz2: OK
 ```
 
@@ -123,7 +123,7 @@ httpd-2.4.38.tar.bz2: OK
 After verification we can unpack the package.
 
 ```bash
-$> tar -xvjf httpd-.tar.bz2
+$> tar -xvjf httpd-2.4.38.tar.bz2
 ```
 
 This results in approximately 38 MB.
@@ -131,8 +131,8 @@ This results in approximately 38 MB.
 We now enter the directory and configure the compiler with our entries and with information about our system. Unlike _apr_, our entries are very extensive.
 
 ```bash
-$> cd httpd-
-$> ./configure --prefix=/opt/apache-  --with-apr=/usr/local/apr/bin/apr-1-config \
+$> cd httpd-2.4.38
+$> ./configure --prefix=/opt/apache-2.4.38  --with-apr=/usr/local/apr/bin/apr-1-config \
    --with-apr-util=/usr/local/apr/bin/apu-1-config \
    --enable-mpms-shared=event \
    --enable-mods-shared=all \
@@ -166,13 +166,13 @@ $> sudo make install
 Installation may also take some time.
 
 ```bash
-$> sudo chown -R `whoami` /opt/apache-
+$> sudo chown -R `whoami` /opt/apache-2.4.38
 ```
 
 And now for a trick: If you work professionally with Apache then you often have several different versions on the test server. Different versions, different patches, other modules, etc. result in tedious and long pathnames with version numbers and other descriptions. To ease things, I create a soft link from `/apache` to the current Apache web server when I switch to a new version. Care must be given that we and not the root user are the owners of the soft link (this is important in configuring the server).
 
 ```bash
-$> sudo ln -s /opt/apache- /apache
+$> sudo ln -s /opt/apache-2.4.38 /apache
 $> sudo chown `whoami` --no-dereference /apache
 $> cd /apache
 ```
@@ -229,7 +229,7 @@ Server's Module Magic Number: 20120211:83
 Server loaded:  APR 1.6.5, APR-UTIL 1.6.1
 Compiled using: APR 1.6.5, APR-UTIL 1.6.1
 Architecture:   64-bit
-Server MPM:     
+Server MPM
 Server compiled with....
  -D APR_HAS_SENDFILE
  -D APR_HAS_MMAP
