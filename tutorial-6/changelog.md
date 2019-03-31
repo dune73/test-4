@@ -1,6 +1,6 @@
 ##### Changelog
 
-* 2019-03-31: Update ModSecurity (2.9.3), update method check in whitelist to return status 405
+* 2019-03-31: Update ModSecurity (2.9.3), update method check in whitelist to return status 405, extended username format to 64 bytes
 * 2018-04-13: Renummerating IDs for whitelisting ruleset, update title format (markdown); rewordings (Simon Studer)
 * 2018-03-03: Shifted the whitelisting rules into the rule id range from 11,000
 * 2017-12-17: Reworded the installation of additional packages; updated rule 200000; updated whitelist error log; renumbered 200004->200005
