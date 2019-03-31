@@ -63,6 +63,7 @@ And once we are at it, let's install everything else we are going to need throug
 * libssl-dev
 * libxml2-dev
 * libyajl-dev
+* ruby
 * zlibc
 * zlib1g-dev
 
