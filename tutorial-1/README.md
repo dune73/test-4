@@ -28,7 +28,7 @@ Let’s start with _apr_ and download the package.
 $> wget https://www-eu.apache.org/dist/apr/apr-1.6.5.tar.bz2
 ```
 
-We’ll now download the checksum of the source code file from Apache. Unfortunately, _www.apache.org_ only offers an md5 checksum for `apr`. We’ll verify it anyway. For better security we’ll be using a secure connection for downloading. Without https this verification doesn’t make much sense. Both files, the source code and the small checksum file, should be placed together in `/usr/src/apache`. We can now verify the checksum:
+We’ll now download the checksum of the source code file from Apache. We’ll verify the integrity of the source code we downloaded that way. For better security we’ll be using a secure connection for downloading. Without https this verification doesn’t make much sense. Both files, the source code and the small checksum file, should be placed together in `/usr/src/apache`. We can now verify the checksum:
 
 
 ```bash
@@ -87,8 +87,8 @@ Once this is successful, we'll do the same with _apr-util_.
 $> cd /usr/src/apache
 
 $> wget https://www-eu.apache.org/dist/apr/apr-util-1.6.1.tar.bz2
-$> wget https://www.apache.org/dist/apr/apr-util-1.6.1.tar.bz2.md5
-$> md5sum --check apr-util-1.6.1.tar.bz2.md5
+$> wget https://www.apache.org/dist/apr/apr-util-1.6.1.tar.bz2.sha256
+$> sha256sum --check apr-util-1.6.1.tar.bz2.sha256
 apr-util-1.6.1.tar.bz2: OK
 $> tar -xvjf apr-util-1.6.1.tar.bz2
 $> cd apr-util-1.6.1
