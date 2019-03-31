@@ -23,20 +23,20 @@ We previously downloaded the source code for the web server to <i>/usr/src/apach
 $> sudo mkdir /usr/src/modsecurity
 $> sudo chown `whoami` /usr/src/modsecurity
 $> cd /usr/src/modsecurity
-$> wget https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz
+$> wget https://www.modsecurity.org/tarball/2.9.3/modsecurity-2.9.3.tar.gz
 ```
 
 Compressed, the source code is just over four megabytes in size. We now need to verify the checksum. It is provided in SHA256 format.
 
 ```bash
-$> wget https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz.sha256
-$> sha256sum --check modsecurity-2.9.2.tar.gz.sha256
+$> wget https://www.modsecurity.org/tarball/2.9.3/modsecurity-2.9.3.tar.gz.sha256
+$> sha256sum --check modsecurity-2.9.3.tar.gz.sha256
 ```
 
 We expect the following response:
 
 ```bash
-modsecurity-2.9.2.tar.gz: OK
+modsecurity-2.9.3.tar.gz: OK
 ```
 
 ### Step 2: Unpacking and configuring the compiler
@@ -51,8 +51,8 @@ We now unpack the source code and initiate the configuration. But before this it
 The stage is thus set and we are ready for ModSecurity.
 
 ```bash
-$> tar -xvzf modsecurity-2.9.2.tar.gz
-$> cd modsecurity-2.9.2
+$> tar -xvzf modsecurity-2.9.3.tar.gz
+$> cd modsecurity-2.9.3
 $> ./configure --with-apxs=/apache/bin/apxs \
 --with-apr=/usr/local/apr/bin/apr-1-config \
 --with-pcre=/usr/bin/pcre-config
