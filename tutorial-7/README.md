@@ -24,26 +24,31 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 
 ```
 $> cd /apache/conf
-$> wget https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.0.2.tar.gz
-$> tar xvzf v3.0.2.tar.gz
-owasp-modsecurity-crs-3.0.2/
-owasp-modsecurity-crs-3.0.2/CHANGES
-owasp-modsecurity-crs-3.0.2/IDNUMBERING
-owasp-modsecurity-crs-3.0.2/INSTALL
-owasp-modsecurity-crs-3.0.2/KNOWN_BUGS
-owasp-modsecurity-crs-3.0.2/LICENSE
-owasp-modsecurity-crs-3.0.2/README.md
-owasp-modsecurity-crs-3.0.2/crs-setup.conf.example
-owasp-modsecurity-crs-3.0.2/documentation/
-owasp-modsecurity-crs-3.0.2/documentation/OWASP-CRS-Documentation/
-owasp-modsecurity-crs-3.0.2/documentation/README
+$> wget https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.1.0.tar.gz
+$> tar -xvzf v3.1.0.tar.gz
+owasp-modsecurity-crs-3.1.0/
+owasp-modsecurity-crs-3.1.0/.github/
+owasp-modsecurity-crs-3.1.0/.github/ISSUE_TEMPLATE.md
+owasp-modsecurity-crs-3.1.0/.gitignore
+owasp-modsecurity-crs-3.1.0/.gitmodules
+owasp-modsecurity-crs-3.1.0/.travis.yml
+owasp-modsecurity-crs-3.1.0/CHANGES
+owasp-modsecurity-crs-3.1.0/IDNUMBERING
+owasp-modsecurity-crs-3.1.0/INSTALL
+owasp-modsecurity-crs-3.1.0/KNOWN_BUGS
+owasp-modsecurity-crs-3.1.0/LICENSE
+owasp-modsecurity-crs-3.1.0/README.md
+owasp-modsecurity-crs-3.1.0/crs-setup.conf.example
+owasp-modsecurity-crs-3.1.0/documentation/
+owasp-modsecurity-crs-3.1.0/documentation/OWASP-CRS-Documentation/
+owasp-modsecurity-crs-3.1.0/documentation/README
 ...
-$> sudo ln -s owasp-modsecurity-crs-3.0.2 /apache/conf/crs
+$> sudo ln -s owasp-modsecurity-crs-3.1.0 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
-$> rm v3.0.2.tar.gz
+$> rm v3.1.0.tar.gz
 ```
 
-This unpacks the base part of the Core Rule Set in the directory `/apache/conf/owasp-modsecurity-crs-3.0.2`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
+This unpacks the base part of the Core Rule Set in the directory `/apache/conf/owasp-modsecurity-crs-3.1.0`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
 
 The setup file allows us to tweak many different settings. It is worth a look - if only to see what is included. However, we are OK with the default settings and will not touch the file: We just make sure it is available under the new filename `crs-setup.conf`. Then we can continue to update the configuration to include the rules files.
 
@@ -60,8 +65,8 @@ The rule exclusions are directives and rules used for managing the false alarms 
 Include    /apache/conf/crs/crs-setup.conf
 
 SecAction "id:900110,phase:1,pass,nolog,\
-  setvar:tx.inbound_anomaly_score_threshold=1000,\
-  setvar:tx.outbound_anomaly_score_threshold=1000"
+  setvar:tx.inbound_anomaly_score_threshold=10000,\
+  setvar:tx.outbound_anomaly_score_threshold=10000"
 
 SecAction "id:900000,phase:1,pass,nolog,\
   setvar:tx.paranoia_level=1"
@@ -87,11 +92,11 @@ The Core Rule Set comes with a base configuration file named `crs-setup.conf` wh
 
 We have the option to edit settings in that base configuration file. However, the strategy for this series of tutorials has been to define all the important things in our single Apache configuration file. We do not want to insert the complete contents of the `crs-setup.conf` file into our configuration (but we include it) in order to get the minimal set of configuration items needed to run the Core Rules. I do not want to dive into all the options in the settings file, but it is worth having a look at.
 
-For now, we leave the file untouched, but we take three important values out of `crs-setup.conf` and define them in our config so we have them in sight at all times. We define two thresholds in the unconditional rule _900110_: The inbound anomaly score and the outbound anomaly score. This is done via the `setvar` action which sets both values to 1000.
+For now, we leave the file untouched, but we take three important values out of `crs-setup.conf` and define them in our config so we have them in sight at all times. We define two thresholds in the unconditional rule _900110_: The inbound anomaly score and the outbound anomaly score. This is done via the `setvar` action which sets both values to 10000.
 
 What does that mean? The Core Rule Set works with a scoring mechanism by default. For every rule a request violates, there is a score being raised. When all the request rules have passed, the score is compared to the limit. If if hits the limit, the request is blocked. The same thing happens with the responses, where we want to avoid information leaks to the client.
 
-The Core Rule Set comes in blocking mode by default. If a rule is violated and the score hits the limit, the blocking will be effective immediately. But we are not yet sure our service runs smoothly and the danger of false alarms is always there. We want to avoid unwanted blocks, so we set the threshold at a value of 1000. Rule violations score 5 points at most, so even if cumulation is possible, a request is unlikely to hit the limit. Yet, we remain in blocking mode and when we grow more confident in our configuration, we can lower the threshold gradually.
+The Core Rule Set comes in blocking mode by default. If a rule is violated and the score hits the limit, the blocking will be effective immediately. But we are not yet sure our service runs smoothly and the danger of false alarms is always there. We want to avoid unwanted blocks, so we set the threshold at a value of 10000. Rule violations score 5 points at most, so even if cumulation is possible, a request is unlikely to hit the limit. Yet, we remain in blocking mode and when we grow more confident in our configuration, we can lower the threshold gradually.
 
 The second rule, id `900000`, defines the _Paranoia Level_ to 1. The Core Rules are divided in four groups at paranoia levels 1 - 4. As the name suggests, the higher the paranoia level, the more paranoid the rules. The default is paranoia level 1, where the rules are quite sane and false alarms are rare. When you raise the PL to 2, additional rules are enabled. Starting with PL 2, you will face more and more false alarms, also called false positives. This number grows with PL3 and when you arrive at PL4, you are likely to face false alarms as though your web application firewall has become quite paranoid, so to speak. We will deal with false positives later in this tutorial, but for the moment you just need to be aware that you can control the aggressiveness of the rule set with the paranoia level setting and that PL3 and PL4 are really for advanced users with very high security needs.
 
@@ -100,32 +105,36 @@ The second rule, id `900000`, defines the _Paranoia Level_ to 1. The Core Rules 
 The center of the previous config snippet follows the include statement, which loads all files with suffix `.conf` from the rules sub folder in the CRS directory. This is where all the rules are being loaded. Let's take a look at them:
 
 ```bash
-$> ls -1
-crs/rules/REQUEST-901-INITIALIZATION.conf
-crs/rules/REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
-crs/rules/REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
-crs/rules/REQUEST-905-COMMON-EXCEPTIONS.conf
-crs/rules/REQUEST-910-IP-REPUTATION.conf
-crs/rules/REQUEST-911-METHOD-ENFORCEMENT.conf
-crs/rules/REQUEST-912-DOS-PROTECTION.conf
-crs/rules/REQUEST-913-SCANNER-DETECTION.conf
-crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf
-crs/rules/REQUEST-921-PROTOCOL-ATTACK.conf
-crs/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf
-crs/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf
-crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf
-crs/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf
-crs/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf
-crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf
-crs/rules/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
-crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf
-crs/rules/RESPONSE-950-DATA-LEAKAGES.conf
-crs/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf
-crs/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf
-crs/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf
-crs/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf
-crs/rules/RESPONSE-959-BLOCKING-EVALUATION.conf
-crs/rules/RESPONSE-980-CORRELATION.conf
+$> ls -1 conf/crs/rules/*.conf
+conf/crs/rules/REQUEST-901-INITIALIZATION.conf
+conf/crs/rules/REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9004-DOKUWIKI-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-903.9005-CPANEL-EXCLUSION-RULES.conf
+conf/crs/rules/REQUEST-905-COMMON-EXCEPTIONS.conf
+conf/crs/rules/REQUEST-910-IP-REPUTATION.conf
+conf/crs/rules/REQUEST-911-METHOD-ENFORCEMENT.conf
+conf/crs/rules/REQUEST-912-DOS-PROTECTION.conf
+conf/crs/rules/REQUEST-913-SCANNER-DETECTION.conf
+conf/crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+conf/crs/rules/REQUEST-921-PROTOCOL-ATTACK.conf
+conf/crs/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf
+conf/crs/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf
+conf/crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf
+conf/crs/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf
+conf/crs/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf
+conf/crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf
+conf/crs/rules/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
+conf/crs/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf
+conf/crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf
+conf/crs/rules/RESPONSE-950-DATA-LEAKAGES.conf
+conf/crs/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf
+conf/crs/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf
+conf/crs/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf
+conf/crs/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf
+conf/crs/rules/RESPONSE-959-BLOCKING-EVALUATION.conf
+conf/crs/rules/RESPONSE-980-CORRELATION.conf
 ```
 
 The rule files are grouped by request and response rules. We start off with an initialization rule file. There are a lot of things commented out in the `crs-setup.conf` file. These values are simply set to their default value in the 901 rule file. This helps keep the config neat and tidy and still have all default settings applied. Then we have two application specific rule files for Wordpress and Drupal, followed by an exceptions file that is mostly irrelevant to us. Starting with 910, we have the real rules.
@@ -177,9 +186,10 @@ LoadModule        security2_module        modules/mod_security2.so
 
 ErrorLogFormat          "[%{cu}t] [%-m:%-l] %-a %-L %M"
 LogFormat "%h %{GEOIP_COUNTRY_CODE}e %u [%{%Y-%m-%d %H:%M:%S}t.%{usec_frac}t] \"%r\" %>s %b \
-\"%{Referer}i\" \"%{User-Agent}i\" %v %A %p %R %{BALANCER_WORKER_ROUTE}e %X \"%{cookie}n\" \
-%{UNIQUE_ID}e %{SSL_PROTOCOL}x %{SSL_CIPHER}x %I %O %{ratio}n%% \
-%D %{ModSecTimeIn}e %{ApplicationTime}e %{ModSecTimeOut}e \
+\"%{Referer}i\" \"%{User-Agent}i\" \"%{Content-Type}i\" %{remote}p %v %A %p %R \
+%{BALANCER_WORKER_ROUTE}e %X \"%{cookie}n\" %{UNIQUE_ID}e %{SSL_PROTOCOL}x %{SSL_CIPHER}x \
+%I %O %{ratio}n%% %D %{ModSecTimeIn}e %{ApplicationTime}e %{ModSecTimeOut}e \
+%{ModSecAnomalyScoreInPLs}e %{ModSecAnomalyScoreOutPLs}e \
 %{ModSecAnomalyScoreIn}e %{ModSecAnomalyScoreOut}e" extended
 
 LogFormat "[%{%Y-%m-%d %H:%M:%S}t.%{usec_frac}t] %{UNIQUE_ID}e %D \
@@ -300,8 +310,8 @@ SecRule TX:/^MSC_/ "!@streq 0" \
 Include    /apache/conf/crs/crs-setup.conf
 
 SecAction "id:900110,phase:1,pass,nolog,\
-  setvar:tx.inbound_anomaly_score_threshold=1000,\
-  setvar:tx.outbound_anomaly_score_threshold=1000"
+  setvar:tx.inbound_anomaly_score_threshold=10000,\
+  setvar:tx.outbound_anomaly_score_threshold=10000"
 
 SecAction "id:900000,phase:1,pass,nolog,\
   setvar:tx.paranoia_level=1"
@@ -343,6 +353,8 @@ SecAction "id:90100,phase:5,pass,nolog,\
   setenv:ModSecTimeIn=%{TX.perf_modsecinbound},\
   setenv:ApplicationTime=%{TX.perf_application},\
   setenv:ModSecTimeOut=%{TX.perf_modsecoutbound},\
+  setenv:ModSecAnomalyScoreInPLs=%{tx.anomaly_score_pl1}-%{tx.anomaly_score_pl2}-%{tx.anomaly_score_pl3}-%{tx.anomaly_score_pl4},\
+  setenv:ModSecAnomalyScoreOutPLs=%{tx.outbound_anomaly_score_pl1}-%{tx.outbound_anomaly_score_pl2}-%{tx.outbound_anomaly_score_pl3}-%{tx.outbound_anomaly_score_pl4},\
   setenv:ModSecAnomalyScoreIn=%{TX.anomaly_score},\
   setenv:ModSecAnomalyScoreOut=%{TX.outbound_anomaly_score}"
 
@@ -412,7 +424,7 @@ As predicted, we have not been blocked, but let's check the logs to see if anyth
 ```bash
 $> tail -1 /apache/logs/access.log
 127.0.0.1 - - [2016-10-25 08:40:01.881647] "GET /index.html?exec=/bin/bash HTTP/1.1" 200 48 "-" …
-"curl/7.35.0" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
+"curl/7.47.0" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
 117 479 5 0
 ```
 
@@ -429,7 +441,7 @@ authorization result of <RequireAny>: granted
 ModSecurity: Warning. Matched phrase "/bin/bash" at ARGS:exec. …
 [file "/apache/conf/crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf"] [line "448"] [id "932160"] …
 [rev "1"] [msg "Remote Command Execution: Unix Shell Code Found"] [data "Matched Data: /bin/bash found …
-within ARGS:exec: /bin/bash"] [severity "CRITICAL"] [ver "OWASP_CRS/3.0.2"] [maturity "1"] [accuracy "8"] …
+within ARGS:exec: /bin/bash"] [severity "CRITICAL"] [ver "OWASP_CRS/3.1.0"] [maturity "1"] [accuracy "8"] …
 [tag "application-multi"] [tag "language-shell"] [tag "platform-unix"] [tag "attack-rce"] …
 [tag "OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION"] [tag "WASCTC/WASC-31"] [tag "OWASP_TOP_10/A1"] …
 [tag "PCI/6.5.2"] [hostname "localhost"] [uri "/index.html"] [unique_id "WA7@QX8AAQEAABC4maIAAAAV"]
@@ -449,29 +461,29 @@ With this, we have covered the full alert message that led to the inbound anomal
 
 ```bash
 $> nikto -h localhost
-- Nikto v2.1.4
+- Nikto v2.1.5
 ---------------------------------------------------------------------------
 + Target IP:          127.0.0.1
 + Target Hostname:    localhost
 + Target Port:        80
-+ Start Time:         2016-10-26 10:07:07
++ Start Time:         2019-03-21 07:50:40 (GMT1)
 ---------------------------------------------------------------------------
 + Server: Apache
++ Server leaks inodes via ETags, header found with file /, fields: 0x2d 0x56852b3a6389e 
++ The anti-clickjacking X-Frame-Options header is not present.
 + No CGI Directories found (use '-C all' to force check all possible dirs)
-+ ETag header found on server, fields: 0x30 0x53ab921464f15 
-+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS 
-+ /login.php: Admin login page/section found.
-+ 6448 items checked: 0 error(s) and 3 item(s) reported on remote host
-+ End Time:           2016-10-26 10:07:57 (50 seconds)
++ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD 
++ 6544 items checked: 0 error(s) and 3 item(s) reported on remote host
++ End Time:           2019-03-21 07:51:19 (GMT1) (39 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
 ```
 
-This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 7,300 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 8.8 MB logfile. Looking over the audit log tree reveals 78 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
+This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 13,300 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 11 MB logfile. Looking over the audit log tree reveals 92 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
 
 ### Step 5: Analyzing the alert messages
 
-So we are looking at 7,300 alerts. And even if the format of the entries in the error log may be clear, without a tool they are very hard to read, let alone analyze. A simple remedy is to use a few *shell aliases*, which extract individual pieces of information from the entries. They are stored in the alias file we discussed in the log format in Tutorial 5.
+So we are looking at 13,000 alerts. And even if the format of the entries in the error log may be clear, without a tool they are very hard to read, let alone analyze. A simple remedy is to use a few *shell aliases*, which extract individual pieces of information from the entries. They are stored in the alias file we discussed in the log format in Tutorial 5.
 
 ```
 $> cat ~/.apache-modsec.alias
@@ -481,6 +493,7 @@ alias melfile='grep -o "\[file [^]]*" | cut -d\" -f2'
 alias melhostname='grep -o "\[hostname [^]]*" | cut -d\" -f2'
 alias melid='grep -o "\[id [^]]*" | cut -d\" -f2'
 alias melip='grep -o "\[client [^]]*" | cut -b9-'
+alias melidmsg='sed -e "s/.*\[id \"//" -e "s/\([0-9]*\).*\[msg \"/\1 /" -e "s/\"\].*//" -e "s/(Total .*/(Total ...) .../" -e "s/Incoming and Outgoing Score: [0-9]* [0-9]*/Incoming and Outgoing Score: .../"
 alias melline='grep -o "\[line [^]]*" | cut -d\" -f2'
 alias melmatch='grep -o " at [^\ ]*\. \[file" | sed -e "s/\. \[file//" | cut -b5-'
 alias melmsg='grep -o "\[msg [^]]*" | cut -d\" -f2'
@@ -488,23 +501,22 @@ alias meltimestamp='cut -b2-25'
 alias melunique_id='grep -o "\[unique_id [^]]*" | cut -d\" -f2'
 alias meluri='grep -o "\[uri [^]]*" | cut -d\" -f2'
 ...
-$> source ~/.apache-modsec.alias 
 ```
 
 These abbreviations all start with the prefix *mel*, short for *ModSecurity error log*, followed by the field name. Let’s try it out to output the rule IDs from the messages:
 
 ```
 $> cat logs/error.log | melid | tail
-941160
 920440
+913100
+913100
+913100
+913100
+913100
+913100
+913100
+913100
 920440
-911100
-920100
-930100
-930110
-930110
-930120
-932160
 ```
 
 This seems to do the job. So let’s extend the example a few steps:
@@ -512,77 +524,71 @@ This seems to do the job. So let’s extend the example a few steps:
 ```
 $> cat logs/error.log | melid | sort | uniq -c | sort -n
       1 920220
-      1 920290
-      1 921150
       1 932115
       2 920280
       2 941140
       3 942270
-      4 920420
       4 933150
+      5 942100
       6 932110
-      9 911100
-     11 920100
-     12 942100
-     13 920430
+      7 911100
+      8 932105
      13 932100
-     13 932105
      15 941170
      15 941210
      17 920170
+     29 930130
      35 932150
      67 933130
      70 933160
-    115 941180
-    136 920270
-    139 932160
-    141 931110
-    191 930100
-    219 920440
-    219 930120
-    246 941110
-    248 941100
-    249 941160
-    531 930110
-   2274 931120
-   2340 913120
+    111 932160
+    113 941180
+    114 920270
+    140 931110
+    166 930120
+    172 930100
+    224 920440
+    245 941110
+    247 941100
+    247 941160
+    448 930110
+   2262 931120
+   2328 913120
+   6168 913100
 $> cat logs/error.log | melid | sort | uniq -c | sort -n | while read STR; do echo -n "$STR "; \
 ID=$(echo "$STR" | sed -e "s/.*\ //"); grep $ID logs/error.log | head -1 | melmsg; done
 1 920220 URL Encoding Abuse Attack Attempt
-1 920290 Empty Host Header
-1 921150 HTTP Header Injection Attack via payload (CR/LF deteced)
 1 932115 Remote Command Execution: Windows Command Injection
 2 920280 Request Missing a Host Header
 2 941140 XSS Filter - Category 4: Javascript URI Vector
 3 942270 Looking for basic sql injection. Common attack string for mysql, oracle and others.
-4 920420 Request content type is not allowed by policy
 4 933150 PHP Injection Attack: High-Risk PHP Function Name Found
+5 942100 SQL Injection Attack Detected via libinjection
 6 932110 Remote Command Execution: Windows Command Injection
-9 911100 Method is not allowed by policy
-11 920100 Invalid HTTP Request Line
-12 942100 SQL Injection Attack Detected via libinjection
-13 920430 HTTP protocol version is not allowed by policy
+7 911100 Method is not allowed by policy
+8 932105 Remote Command Execution: Unix Command Injection
 13 932100 Remote Command Execution: Unix Command Injection
-13 932105 Remote Command Execution: Unix Command Injection
 15 941170 NoScript XSS InjectionChecker: Attribute Injection
 15 941210 IE XSS Filters - Attack Detected.
 17 920170 GET or HEAD Request with Body Content.
+29 930130 Restricted File Access Attempt
 35 932150 Remote Command Execution: Direct Unix Command Execution
 67 933130 PHP Injection Attack: Variables Found
 70 933160 PHP Injection Attack: High-Risk PHP Function Call Found
-115 941180 Node-Validator Blacklist Keywords
-136 920270 Invalid character in request (null character)
-139 932160 Remote Command Execution: Unix Shell Code Found
-141 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name  …
-191 930100 Path Traversal Attack (/../)
-219 920440 URL file extension is restricted by policy
-219 930120 OS File Access Attempt
-246 941110 XSS Filter - Category 1: Script Tag Vector
-248 941100 XSS Attack Detected via libinjection
-249 941160 NoScript XSS InjectionChecker: HTML Injection
-531 930110 Path Traversal Attack (/../)
-2274 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question …
-2340 913120 Found request filename/argument associated with security scanner
+111 932160 Remote Command Execution: Unix Shell Code Found
+113 941180 Node-Validator Blacklist Keywords
+114 920270 Invalid character in request (null character)
+140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name …
+166 930120 OS File Access Attempt
+172 930100 Path Traversal Attack (/../)
+224 920440 URL file extension is restricted by policy
+245 941110 XSS Filter - Category 1: Script Tag Vector
+247 941100 XSS Attack Detected via libinjection
+247 941160 NoScript XSS InjectionChecker: HTML Injection
+448 930110 Path Traversal Attack (/../)
+2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question …
+2328 913120 Found request filename/argument associated with security scanner
+6168 913100 Found User-Agent associated with security scanner
 ```
 
 This, we can work with. But it’s perhaps necessary to explain the *one-liners*. We extract the rule IDs from the *error log*, then *sort* them, sum them together in a list of found IDs (*uniq -c*) and sort again by the numbers found. That’s the first *one-liner*. A relationship between the individual rules is still lacking, because there’s not much we can do with the ID number yet. We get the names from the *error log* again by looking through the previously run test line-by-line in a loop. We out the ID that we have into this loop (`$STR`). Then we have to separate the number of found items and the IDs again. This is done using an embedded sub-command (`ID=$(echo "$STR" | sed -e "s/.*\ //")`). We then use the IDs we just found to search the *error log* once more for an entry, but take only the first one, extract the *msg* part and display it. Done.
@@ -590,48 +596,45 @@ This, we can work with. But it’s perhaps necessary to explain the *one-liners*
 You might now think that it would be better to define an additional alias to determine the ID and description of the rule in a single step. This puts us on the wrong path, though, because there are rules that contain dynamic parts in and following the brackets (anomaly scores in the rules checking the threshold with rule ID 949110 and 980130!). We, of course, want to combine these rules, putting them together in order to map the rule only once. So, to really simplify analysis, we have to get rid of the dynamic items. Here’s an additional *alias*, that is also part of the *.apache-modsec.alias* file, that implements this idea: 
 
 ```bash
-alias melidmsg='grep -o "\[id [^]]*\].*\[msg [^]]*\]" | \
-sed -e "s/\].*\[/] [/" -e "s/\[msg //" | \
-cut -d\  -f2- | tr -d "\]\"" | sed -e "s/(Total .*/(Total ...) .../"'
+alias melidmsg='sed -e "s/.*\[id \"//" -e "s/\([0-9]*\).*\[msg \"/\1 /" -e "s/\"\].*//" \
+-e "s/(Total .*/(Total ...) .../" \
+-e "s/Incoming and Outgoing Score: [0-9]* [0-9]*/Incoming and Outgoing Score: .../"'
 ```
 
 ```bash
 $> cat logs/error.log | melidmsg | sucs
       1 920220 URL Encoding Abuse Attack Attempt
-      1 920290 Empty Host Header
-      1 921150 HTTP Header Injection Attack via payload (CR/LF deteced)
       1 932115 Remote Command Execution: Windows Command Injection
       2 920280 Request Missing a Host Header
       2 941140 XSS Filter - Category 4: Javascript URI Vector
-      3 942270 Looking for basic sql injection. Common attack string for mysql, oracle …
-      4 920420 Request content type is not allowed by policy
+      3 942270 Looking for basic sql injection. Common attack string for mysql, oracle and others.
       4 933150 PHP Injection Attack: High-Risk PHP Function Name Found
+      5 942100 SQL Injection Attack Detected via libinjection
       6 932110 Remote Command Execution: Windows Command Injection
-      9 911100 Method is not allowed by policy
-     11 920100 Invalid HTTP Request Line
-     12 942100 SQL Injection Attack Detected via libinjection
-     13 920430 HTTP protocol version is not allowed by policy
+      7 911100 Method is not allowed by policy
+      8 932105 Remote Command Execution: Unix Command Injection
      13 932100 Remote Command Execution: Unix Command Injection
-     13 932105 Remote Command Execution: Unix Command Injection
      15 941170 NoScript XSS InjectionChecker: Attribute Injection
      15 941210 IE XSS Filters - Attack Detected.
      17 920170 GET or HEAD Request with Body Content.
+     29 930130 Restricted File Access Attempt
      35 932150 Remote Command Execution: Direct Unix Command Execution
      67 933130 PHP Injection Attack: Variables Found
      70 933160 PHP Injection Attack: High-Risk PHP Function Call Found
-    115 941180 Node-Validator Blacklist Keywords
-    136 920270 Invalid character in request (null character)
-    139 932160 Remote Command Execution: Unix Shell Code Found
-    141 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter …
-    191 930100 Path Traversal Attack (/../)
-    219 920440 URL file extension is restricted by policy
-    219 930120 OS File Access Attempt
-    246 941110 XSS Filter - Category 1: Script Tag Vector
-    248 941100 XSS Attack Detected via libinjection
-    249 941160 NoScript XSS InjectionChecker: HTML Injection
-    531 930110 Path Traversal Attack (/../)
-   2274 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing …
-   2340 913120 Found request filename/argument associated with security scanner
+    111 932160 Remote Command Execution: Unix Shell Code Found
+    113 941180 Node-Validator Blacklist Keywords
+    114 920270 Invalid character in request (null character)
+    140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name used w/URL Payload
+    166 930120 OS File Access Attempt
+    172 930100 Path Traversal Attack (/../)
+    224 920440 URL file extension is restricted by policy
+    245 941110 XSS Filter - Category 1: Script Tag Vector
+    247 941100 XSS Attack Detected via libinjection
+    247 941160 NoScript XSS InjectionChecker: HTML Injection
+    448 930110 Path Traversal Attack (/../)
+   2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question Mark Character (?)
+   2328 913120 Found request filename/argument associated with security scanner
+   6168 913100 Found User-Agent associated with security scanner
 ```
 
 So that's something we can work with. It shows that the Core Rules detected a lot of malicious requests and we now have an idea which rules played a role in this. The rule triggered most frequently, 913120, is no surprise, and when you look upwards in the output, this all makes a lot of sense.
@@ -653,23 +656,20 @@ In Tutorial 5 we worked with a sample log file containing 10,000 entries. We’l
 
 ```
 $> egrep -o "[0-9-]+ [0-9-]+$" tutorial-5-example-access.log | cut -d\  -f1 | sucs
-      1 21
-      2 41
-      8 5
-     11 2
-     17 3
-     41 -
-   9920 0
+      3 10
+      5 3
+      6 2
+     55 5
+   9931 0
 $> egrep -o "[0-9-]+$" tutorial-5-example-access.log | sucs
-     41 -
-   9959 0
+  10000 0
 ```
 
 The first command line reads the inbound *anomaly score*. It’s the second-to-last value in the *access log line*. We take the two last values (*egrep*) and then *cut* the first one out. We then sort the results using the familiar *sucs* alias. The outbound *anomaly score* is the last value in the *log line*. This is why there is no *cut* command on the second command line.
 
-The results give us an idea of the situation: The vast majority of requests pass the *ModSecurity module* with no rule violation: 9920 requests with score 0. 80 requests violated one or more rules. This is not a standard situation for the Core Rules. In fact, I provoked additional false alarms to give us something to look at. The Core Rule Set is so optimized these days that you need a lot of traffic to get a reasonable amount of alerts - or you need to raise the paranoia level very high on a non-tuned system.
+The results give us an idea of the situation: The vast majority of requests pass the *ModSecurity module* with no rule violation: 9931 requests with score 0. 69 requests violated one or more rules. This is not a standard situation for the Core Rules. In fact, I provoked additional false alarms to give us something to look at. The Core Rule Set is so optimized these days that you need a lot of traffic to get a reasonable amount of alerts - or you need to raise the paranoia level very high on a non-tuned system.
 
-A score of 41 appears twice, corresponding to a high number of serious rule infractions. This is very common in practice, where a serious SQL injection attempt sets off a series of alarms. In 41 cases, we didn’t get any score for the server’s responses. These are log entries of empty requests in which a connection with the client was established, but no request was made. We have taken this possibility into account in the regular expression using *egrep* and are also taking into account the default value, "-". Besides these empty entries, nothing else is conspicuous at all. This is typical, if a bit high. In all likelihood, we will be seeing a fair number of violations from the requests and very few alarms from the responses.
+A score of 10 appears three times, corresponding to two violations in the same request (most rules score 5 points when violated), which is fairly standard in practice. In all likelihood, we will be seeing a fair number of violations from the requests and very few alarms from the responses; 0 in our example above.
 
 But this still doesn’t give us the right idea about the *tuning steps* that would be needed to run this install smoothly. To present this information in a suitable form, I have prepared a ruby script that analyzes *anomaly scores*. You can download the script here: [modsec-positive-stats.rb](https://www.netnea.com/files/modsec-positive-stats.rb) and place it in your private _bin_ directory (You might have to install the _ruby_ package to get it working). It takes the two anomaly scores as input and we need to separate them with a semicolon in order to pipe them into the script. We can do this like this:
 
@@ -678,60 +678,29 @@ $> cat tutorial-5-example-access.log  | egrep -o "[0-9-]+ [0-9-]+$" | tr " " ";"
 INCOMING                     Num of req. | % of req. |  Sum of % | Missing %
 Number of incoming req. (total) |  10000 | 100.0000% | 100.0000% |   0.0000%
 
-Empty or miss. incoming score   |     41 |   0.4100% |   0.4100% |  99.5900%
-Reqs with incoming score of   0 |   9920 |  99.2000% |  99.6100% |   0.3900%
-Reqs with incoming score of   1 |      0 |   0.0000% |  99.6100% |   0.3900%
-Reqs with incoming score of   2 |     11 |   0.1100% |  99.7200% |   0.2800%
-Reqs with incoming score of   3 |     17 |   0.1699% |  99.8900% |   0.1100%
-Reqs with incoming score of   4 |      0 |   0.0000% |  99.8900% |   0.1100%
-Reqs with incoming score of   5 |      8 |   0.0800% |  99.9700% |   0.0300%
+Empty or miss. incoming score   |      0 |   0.0000% |   0.0000% | 100.0000%
+Reqs with incoming score of   0 |   9931 |  99.3100% |  99.3100% |   0.6900%
+Reqs with incoming score of   1 |      0 |   0.0000% |  99.3100% |   0.6900%
+Reqs with incoming score of   2 |      6 |   0.0600% |  99.3700% |   0.6300%
+Reqs with incoming score of   3 |      5 |   0.0500% |  99.4200% |   0.5800%
+Reqs with incoming score of   4 |      0 |   0.0000% |  99.4200% |   0.5800%
+Reqs with incoming score of   5 |     55 |   0.5499% |  99.9700% |   0.0300%
 Reqs with incoming score of   6 |      0 |   0.0000% |  99.9700% |   0.0300%
 Reqs with incoming score of   7 |      0 |   0.0000% |  99.9700% |   0.0300%
 Reqs with incoming score of   8 |      0 |   0.0000% |  99.9700% |   0.0300%
 Reqs with incoming score of   9 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  10 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  11 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  12 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  13 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  14 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  15 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  16 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  17 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  18 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  19 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  20 |      0 |   0.0000% |  99.9700% |   0.0300%
-Reqs with incoming score of  21 |      1 |   0.0100% |  99.9800% |   0.0200%
-Reqs with incoming score of  22 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  23 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  24 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  25 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  26 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  27 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  28 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  29 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  30 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  31 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  32 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  33 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  34 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  35 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  36 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  37 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  38 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  39 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  40 |      0 |   0.0000% |  99.9800% |   0.0200%
-Reqs with incoming score of  41 |      2 |   0.0200% | 100.0000% |   0.0000%
+Reqs with incoming score of  10 |      3 |   0.0300% | 100.0000% |   0.0000%
 
-Average:   0.0217        Median   0.0000         Standard deviation   0.6490
+Incoming average:   0.0332    Median   0.0000    Standard deviation   0.4163
 
 
 OUTGOING                     Num of req. | % of req. |  Sum of % | Missing %
 Number of outgoing req. (total) |  10000 | 100.0000% | 100.0000% |   0.0000%
 
-Empty or miss. incoming score   |     41 |   0.4100% |   0.4100% |  99.5900%
-Reqs with outgoing score of   0 |   9959 |  99.5900% | 100.0000% |   0.0000%
+Empty or miss. outgoing score   |      0 |   0.0000% |   0.0000% | 100.0000%
+Reqs with outgoing score of   0 |  10000 | 100.0000% | 100.0000% |   0.0000%
 
-Average:   0.0000        Median   0.0000         Standard deviation   0.0000
+Outgoing average:   0.0000    Median   0.0000    Standard deviation   0.0000
 ```
 
 The script divides the inbound from the outbound *anomaly scores*. The incoming ones are handled first. Before the script can handle the scores, it describes how often an empty *anomaly score* has been found (*empty incoming score*). In our case, this was 41 times, as we saw before. Then comes the statement about *score 0*: 9920 requests. This is covering 99.2% of the requests. Together with the empty scores, this is already covering 99.61% (*Sum of %*). 0.39% had a higher *anomaly score* (*Missing %*). Above, we set out to have 99.99% of requests able to pass the server. We are about 0.38% or 38 requests away from this target. The next *anomaly score* is 2. It appears 11 times or 0.11%. The *anomaly score* 3 appears 17 times and a score of 5 can be seen 8 times. All in all, we are at 99.97%. Then there is one request with a score of 21 and finally 2 requests with with a score of 41. To achieve 99.99% coverage we have get to this limit (and, based on the log file, thus achieve 100% coverage).
@@ -750,7 +719,7 @@ Especially at higher paranoia levels, there are rules that just fail to work wit
 $> curl -v -H "Accept: " http://localhost/index.html
 ...
 > GET /index.html HTTP/1.1
-> User-Agent: curl/7.32.0
+> User-Agent: curl/7.47.0
 > Host: localhost
 ...
 $> tail /apache/logs/error.log | melidmsg
@@ -846,9 +815,9 @@ With this, we have seen all basic methods to handle false positives via rule exc
 
 ### Step 9: Readjusting the anomaly threshold
 
-Handling false positives is tedious at times. However, with the goal of protecting the application, it is most certainly worthwhile. When we introduced the statistic script I stated that we should make sure that at least 99.99% of requests pass through the rule set without any false positives. The remaining positives, the ones caused by attackers, should be blocked. But we are still running with an anomaly limit of 1,000. We need to reduce this to a decent level. Any limit above 30 or 40 is unlikely to stop anything serious. With a threshold of 20, you start to see an effect and then with 10 you get fairly good protection from standard attackers. Even if an individual rule only scores 5 points, some attack classes like SQL injections typically trigger multiple alarms, so a limit of 10 catches quite a few attack requests. In other categories, the coverage with rules is less extensive. This means, the accumulation of multiple rules is less intense. So it is perfectly possible to stay beneath a score of 10 with a certain attack payload. That's why a limit of 5 for the inbound score and 4 for the outbound score gives you a good level security. These are the default values of the CRS.
+Handling false positives is tedious at times. However, with the goal of protecting the application, it is most certainly worthwhile. When we introduced the statistic script I stated that we should make sure that at least 99.99% of requests pass through the rule set without any false positives. The remaining positives, the ones caused by attackers, should be blocked. But we are still running with an anomaly limit of 10,000. We need to reduce this to a decent level. Any limit above 30 or 40 is unlikely to stop anything serious. With a threshold of 20, you start to see an effect and then with 10 you get fairly good protection from standard attackers. Even if an individual rule only scores 5 points, some attack classes like SQL injections typically trigger multiple alarms, so a limit of 10 catches quite a few attack requests. In other categories, the coverage with rules is less extensive. This means, the accumulation of multiple rules is less intense. So it is perfectly possible to stay beneath a score of 10 with a certain attack payload. That's why a limit of 5 for the inbound score and 4 for the outbound score gives you a good level security. These are the default values of the CRS.
 
-But how to lower the limit from 1000 to 5 without harming production? It takes a certain trust in your tuning skills to perform this step. A more natural approach is to go over multiple iterations: An initial tuning round is performed with a limit of 1,000. When the most blatant sources of false positives are eliminated this way, you wait for a given amount of time and then lower the limit to 50 and examine the logs again. Tune and reduce to 30, then 20, 10 and finally 5. After every reduction, you need to check the new log files and run the statistic script. By looking at the statistics, you see what you can expect from a reduction of the limit. Let's look once more at the stats we examined before:
+But how to lower the limit from 10,000 to 5 without harming production? It takes a certain trust in your tuning skills to perform this step. A more natural approach is to go over multiple iterations: An initial tuning round is performed with a limit of 10,000. When the most blatant sources of false positives are eliminated this way, you wait for a given amount of time and then lower the limit to 50 and examine the logs again. Tune and reduce to 30, then 20, 10 and finally 5. After every reduction, you need to check the new log files and run the statistic script. By looking at the statistics, you see what you can expect from a reduction of the limit. Let's look once more at the stats we examined before:
 
 ```bash
 INCOMING                     Num of req. | % of req. |  Sum of % | Missing %

@@ -23,20 +23,20 @@ We previously downloaded the source code for the web server to <i>/usr/src/apach
 $> sudo mkdir /usr/src/modsecurity
 $> sudo chown `whoami` /usr/src/modsecurity
 $> cd /usr/src/modsecurity
-$> wget https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz
+$> wget https://www.modsecurity.org/tarball/2.9.3/modsecurity-2.9.3.tar.gz
 ```
 
 Compressed, the source code is just over four megabytes in size. We now need to verify the checksum. It is provided in SHA256 format.
 
 ```bash
-$> wget https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz.sha256
-$> sha256sum --check modsecurity-2.9.2.tar.gz.sha256
+$> wget https://www.modsecurity.org/tarball/2.9.3/modsecurity-2.9.3.tar.gz.sha256
+$> sha256sum --check modsecurity-2.9.3.tar.gz.sha256
 ```
 
 We expect the following response:
 
 ```bash
-modsecurity-2.9.2.tar.gz: OK
+modsecurity-2.9.3.tar.gz: OK
 ```
 
 ### Step 2: Unpacking and configuring the compiler
@@ -51,8 +51,8 @@ We now unpack the source code and initiate the configuration. But before this it
 The stage is thus set and we are ready for ModSecurity.
 
 ```bash
-$> tar -xvzf modsecurity-2.9.2.tar.gz
-$> cd modsecurity-2.9.2
+$> tar -xvzf modsecurity-2.9.3.tar.gz
+$> cd modsecurity-2.9.3
 $> ./configure --with-apxs=/apache/bin/apxs \
 --with-apr=/usr/local/apr/bin/apr-1-config \
 --with-pcre=/usr/bin/pcre-config
@@ -119,9 +119,10 @@ LoadModule        security2_module        modules/mod_security2.so
 
 ErrorLogFormat          "[%{cu}t] [%-m:%-l] %-a %-L %M"
 LogFormat "%h %{GEOIP_COUNTRY_CODE}e %u [%{%Y-%m-%d %H:%M:%S}t.%{usec_frac}t] \"%r\" %>s %b \
-\"%{Referer}i\" \"%{User-Agent}i\" %v %A %p %R %{BALANCER_WORKER_ROUTE}e %X \"%{cookie}n\" \
-%{UNIQUE_ID}e %{SSL_PROTOCOL}x %{SSL_CIPHER}x %I %O %{ratio}n%% \
-%D %{ModSecTimeIn}e %{ApplicationTime}e %{ModSecTimeOut}e \
+\"%{Referer}i\" \"%{User-Agent}i\" \"%{Content-Type}i\" %{remote}p %v %A %p %R \
+%{BALANCER_WORKER_ROUTE}e %X \"%{cookie}n\" %{UNIQUE_ID}e %{SSL_PROTOCOL}x %{SSL_CIPHER}x \
+%I %O %{ratio}n%% %D %{ModSecTimeIn}e %{ApplicationTime}e %{ModSecTimeOut}e \
+%{ModSecAnomalyScoreInPLs}e %{ModSecAnomalyScoreOutPLs}e \
 %{ModSecAnomalyScoreIn}e %{ModSecAnomalyScoreOut}e" extended
 
 LogFormat "[%{%Y-%m-%d %H:%M:%S}t.%{usec_frac}t] %{UNIQUE_ID}e %D \
@@ -262,6 +263,8 @@ SecAction "id:90100,phase:5,pass,nolog,\
   setenv:ModSecTimeIn=%{TX.perf_modsecinbound},\
   setenv:ApplicationTime=%{TX.perf_application},\
   setenv:ModSecTimeOut=%{TX.perf_modsecoutbound},\
+  setenv:ModSecAnomalyScoreInPLs=%{tx.anomaly_score_pl1}-%{tx.anomaly_score_pl2}-%{tx.anomaly_score_pl3}-%{tx.anomaly_score_pl4},\
+  setenv:ModSecAnomalyScoreOutPLs=%{tx.outbound_anomaly_score_pl1}-%{tx.outbound_anomaly_score_pl2}-%{tx.outbound_anomaly_score_pl3}-%{tx.outbound_anomaly_score_pl4},\
   setenv:ModSecAnomalyScoreIn=%{TX.anomaly_score},\
   setenv:ModSecAnomalyScoreOut=%{TX.outbound_anomaly_score}"
 
@@ -512,7 +515,7 @@ SecRule REQUEST_URI "!@beginsWith /login" \
 
 # Validate HTTP method
 SecRule REQUEST_METHOD "!@pm GET HEAD POST OPTIONS" \
-    "id:11100,phase:1,deny,log,tag:'Login Whitelist',\
+    "id:11100,phase:1,deny,status:405,log,tag:'Login Whitelist',\
     msg:'Method %{MATCHED_VAR} not allowed'"
 
 # Validate URIs
@@ -554,7 +557,7 @@ SecRule &ARGS:sectoken  "@gt 1" \
     msg:'%{MATCHED_VAR_NAME} occurring more than once'"
 
 # Check individual parameters
-SecRule ARGS:username "!@rx ^[a-zA-Z0-9.@-]{1,32}$" \
+SecRule ARGS:username "!@rx ^[a-zA-Z0-9.@-]{1,64}$" \
     "id:11500,phase:2,deny,log,tag:'Login Whitelist',\
     msg:'Invalid parameter format: %{MATCHED_VAR_NAME} (%{MATCHED_VAR})'"
 SecRule ARGS:sectoken "!@rx ^[a-zA-Z0-9]{32}$" \
@@ -577,7 +580,7 @@ In the two following rules (ID 11001 and 11002) we check whether our set of rule
 
 Having established the fact that we are dealing with a login request, we can now write down our rules checking these request. An HTTP request has several characteristics that are of concern to us: The method, the path, the query string parameter as well as any post parameters (this concerns the submission of a login form). We will leave out the request headers including cookies in this example, but they could also become a vulnerability depending on the application and should also be queried then.
 
-First, we look at the HTTP method in rule ID 11100. Displaying the login form is going to be a _GET_ request; submitting the credentials will be a _POST_ request. Some clients like to issue _HEAD_ and _OPTIONS_ requests as well and not much harm is done by permitting these requests. Everything else, _PUT_ and _DELETE_ and all the webdav methods, are being blocked by this rule. We check the four whitelisted methods with a parallel matching operator (`@pm`). This is faster then a regular expression and it is also more readable.
+First, we look at the HTTP method in rule ID 11100. Displaying the login form is going to be a _GET_ request; submitting the credentials will be a _POST_ request. Some clients like to issue _HEAD_ and _OPTIONS_ requests as well and not much harm is done by permitting these requests. Everything else, _PUT_ and _DELETE_ and all the webdav methods, are being blocked by this rule. We check the four whitelisted methods with a parallel matching operator (`@pm`). This is faster then a regular expression and it is also more readable. Because we want to follow best practices, we do not simply return the default status code 403 (Forbidden), but we return 405 which indicates to the client, that the method is not allowed.
 
 In the rule block starting at rule ID 11200, we examine the URL in detail. We establish three folders, where we allow access to static files: `/login/static/css/`, `/login/static/img/` and `/login/static/js/`. We do not want to micromanage the individual files retrieved from these folders, so we simply allow access to these folders. The rule ID 11250 is different. It defines the targets of the dynamic requests of the users. We construct a regular expression which allows exactly three URIs: `/login/displayLogin.do`, `/login/login.do` and `/login/logout.do`. Anything outside this list is going to be forbidden.
 
@@ -611,7 +614,8 @@ $> curl -d "username=john&password=test" http://localhost/login/login.do
 -> OK (ModSecurity permits access. But this page itself does not exist. So we get 404, Page not Found)
 $> curl -d "username=john&password=test&backdoor=1" http://localhost/login/login.do
 -> FAIL
-$> curl -d "username=john56789012345678901234567890123&password=test" http://localhost/login/login.do
+$> curl -d "username=john5678901234567890123456789012345678901234567890123456789012345&password=test" \
+http://localhost/login/login.do
 -> FAIL
 $> curl -d "username=john'&password=test" http://localhost/login/login.do
 -> FAIL
@@ -638,13 +642,13 @@ against "ARGS_NAMES:backdoor" required. [file "/apache/conf/httpd.conf_pod_2017-
 [line "227"] [id "11300"] [msg "Unknown parameter: ARGS_NAMES:backdoor"] [tag "Login Whitelist"] …
 [hostname "localhost"] [uri "/login/login.do"] [unique_id "WjaHe7q3BsfzODHx0EBwpAAAAAk"]
 [2017-12-17 16:04:34.347509] [-:error] 127.0.0.1:54616 WjaHgrq3BsfzODHx0EBwpQAAAAo [client 127.0.0.1] …
-ModSecurity: Access denied with code 403 (phase 2). Match of "rx ^[a-zA-Z0-9.@-]{1,32}$" against …
+ModSecurity: Access denied with code 403 (phase 2). Match of "rx ^[a-zA-Z0-9.@-]{1,64}$" against …
 "ARGS:username" required. [file "/apache/conf/httpd.conf_pod_2017-12-17_12:10"] [line "243"] [id …
 "11500"] [msg "Invalid parameter format: ARGS:username (john56789012345678901234567890123)"] [tag …
 "Login Whitelist"] [hostname "localhost"] [uri "/login/login.do"] …
 [unique_id "WjaHgrq3BsfzODHx0EBwpQAAAAo"]
 [2017-12-17 16:04:42.069838] [-:error] 127.0.0.1:54850 WjaHirq3BsfzODHx0EBwpgAAAAw [client 127.0.0.1] …
-ModSecurity: Access denied with code 403 (phase 2). Match of "rx ^[a-zA-Z0-9.@-]{1,32}$" against …
+ModSecurity: Access denied with code 403 (phase 2). Match of "rx ^[a-zA-Z0-9.@-]{1,64}$" against …
 "ARGS:username" required. [file "/apache/conf/httpd.conf_pod_2017-12-17_12:10"] [line "243"] …
 [id "11500"] [msg "Invalid parameter format: ARGS:username (john')"] [tag "Login Whitelist"] …
 [hostname "localhost"] [uri "/login/login.do"] [unique_id "WjaHirq3BsfzODHx0EBwpgAAAAw"]

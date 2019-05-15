@@ -1,5 +1,8 @@
 ##### Changelog
 
+* 2019-05-12: Add nikto to the list of packages to be installed
+* 2019-03-31: Add ruby to the list of packages to be installed
+* 2019-03-05: Update apr (1.6.5), Apache (2.4.38), adopted sha256 checksums
 * 2018-04-13: Update title format (markdown) (Simon Studer)
 * 2017-12-17: Switch apache mirror (www-eu.apache.org), update apr (1.6.3), apr-util (1.6.1) and Apache (2.4.29); rearranged package installation, replaced screenshot
 * 2017-11-12: Typo

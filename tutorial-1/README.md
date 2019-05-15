@@ -25,23 +25,23 @@ Since the release of version 2.4, the Apache web server comes without two import
 Let’s start with _apr_ and download the package.
 
 ```bash
-$> wget https://www-eu.apache.org/dist/apr/apr-1.6.3.tar.bz2
+$> wget https://www-eu.apache.org/dist/apr/apr-1.6.5.tar.bz2
 ```
 
-We’ll now download the checksum of the source code file from Apache. Unfortunately, _www.apache.org_ only offers an md5 checksum for `apr`. We’ll verify it anyway. For better security we’ll be using a secure connection for downloading. Without https this verification doesn’t make much sense. Both files, the source code and the small checksum file, should be placed together in `/usr/src/apache`. We can now verify the checksum:
+We’ll now download the checksum of the source code file from Apache. We’ll verify the integrity of the source code we downloaded that way. For better security we’ll be using a secure connection for downloading. Without https this verification doesn’t make much sense. Both files, the source code and the small checksum file, should be placed together in `/usr/src/apache`. We can now verify the checksum:
 
 
 ```bash
-$> wget https://www.apache.org/dist/apr/apr-1.6.3.tar.bz2.md5
-$> md5sum --check apr-1.6.3.tar.bz2.md5
-apr-1.6.3.tar.bz2: OK
+$> wget https://www.apache.org/dist/apr/apr-1.6.5.tar.bz2.sha256
+$> sha256sum --check apr-1.6.5.tar.bz2.sha256
+apr-1.6.5.tar.bz2: OK
 ```
 
 The test should not result in any problems, _OK_. We can now continue with unpacking, pre-configuring and compiling _apr_.
 
 ```bash
-$> tar -xvjf apr-1.6.3.tar.bz2
-$> cd apr-1.6.3
+$> tar -xvjf apr-1.6.5.tar.bz2
+$> cd apr-1.6.5
 $> ./configure --prefix=/usr/local/apr/
 ```
 
@@ -63,6 +63,8 @@ And once we are at it, let's install everything else we are going to need throug
 * libssl-dev
 * libxml2-dev
 * libyajl-dev
+* nikto
+* ruby
 * zlibc
 * zlib1g-dev
 
@@ -87,8 +89,8 @@ Once this is successful, we'll do the same with _apr-util_.
 $> cd /usr/src/apache
 
 $> wget https://www-eu.apache.org/dist/apr/apr-util-1.6.1.tar.bz2
-$> wget https://www.apache.org/dist/apr/apr-util-1.6.1.tar.bz2.md5
-$> md5sum --check apr-util-1.6.1.tar.bz2.md5
+$> wget https://www.apache.org/dist/apr/apr-util-1.6.1.tar.bz2.sha256
+$> sha256sum --check apr-util-1.6.1.tar.bz2.sha256
 apr-util-1.6.1.tar.bz2: OK
 $> tar -xvjf apr-util-1.6.1.tar.bz2
 $> cd apr-util-1.6.1
@@ -105,7 +107,7 @@ We’ll now download the program code from the internet. This can be done by dow
 
 ```bash
 $> cd /usr/src/apache
-$> wget https://www-eu.apache.org/dist//httpd/httpd-2.4.29.tar.bz2
+$> wget https://www-eu.apache.org/dist//httpd/httpd-2.4.38.tar.bz2
 ```
 
 The compressed source code is approximately 5 MB in size.
@@ -113,9 +115,9 @@ The compressed source code is approximately 5 MB in size.
 We’ll now download the checksum of the source code file from Apache. At least it’s available as a _sha1 checksum_. We’ll again be using a secure connection for better security. Without https this verification doesn’t make much sense.
 
 ```bash
-$> wget https://www.apache.org/dist/httpd/httpd-2.4.29.tar.bz2.sha1
-$> sha1sum --check httpd-2.4.29.tar.bz2.sha1 
-httpd-2.4.29.tar.bz2: OK
+$> wget https://www.apache.org/dist/httpd/httpd-2.4.38.tar.bz2.sha256
+$> sha256sum --check httpd-2.4.38.tar.bz2.sha256
+httpd-2.4.38.tar.bz2: OK
 ```
 
 ### Step 4: Unpacking and configuring the compiler
@@ -123,7 +125,7 @@ httpd-2.4.29.tar.bz2: OK
 After verification we can unpack the package.
 
 ```bash
-$> tar -xvjf httpd-2.4.29.tar.bz2
+$> tar -xvjf httpd-2.4.38.tar.bz2
 ```
 
 This results in approximately 38 MB.
@@ -131,8 +133,8 @@ This results in approximately 38 MB.
 We now enter the directory and configure the compiler with our entries and with information about our system. Unlike _apr_, our entries are very extensive.
 
 ```bash
-$> cd httpd-2.4.29
-$> ./configure --prefix=/opt/apache-2.4.29  --with-apr=/usr/local/apr/bin/apr-1-config \
+$> cd httpd-2.4.38
+$> ./configure --prefix=/opt/apache-2.4.38  --with-apr=/usr/local/apr/bin/apr-1-config \
    --with-apr-util=/usr/local/apr/bin/apu-1-config \
    --enable-mpms-shared=event \
    --enable-mods-shared=all \
@@ -166,13 +168,13 @@ $> sudo make install
 Installation may also take some time.
 
 ```bash
-$> sudo chown -R `whoami` /opt/apache-2.4.29
+$> sudo chown -R `whoami` /opt/apache-2.4.38
 ```
 
 And now for a trick: If you work professionally with Apache then you often have several different versions on the test server. Different versions, different patches, other modules, etc. result in tedious and long pathnames with version numbers and other descriptions. To ease things, I create a soft link from `/apache` to the current Apache web server when I switch to a new version. Care must be given that we and not the root user are the owners of the soft link (this is important in configuring the server).
 
 ```bash
-$> sudo ln -s /opt/apache-2.4.29 /apache
+$> sudo ln -s /opt/apache-2.4.38 /apache
 $> sudo chown `whoami` --no-dereference /apache
 $> cd /apache
 ```
@@ -223,15 +225,13 @@ $> sudo ./bin/httpd -V
 ```
 
 ```bash
-Server version: Apache/2.4.29 (Unix)
-Server built:   Dec 17 2017 06:09:49
-Server's Module Magic Number: 20120211:47
-Server loaded:  APR 1.6.3, APR-UTIL 1.6.1
-Compiled using: APR 1.6.3, APR-UTIL 1.6.1
+Server version: Apache/2.4.38 (Unix)
+Server built:   Mar  5 2019 10:35:49
+Server's Module Magic Number: 20120211:83
+Server loaded:  APR 1.6.5, APR-UTIL 1.6.1
+Compiled using: APR 1.6.5, APR-UTIL 1.6.1
 Architecture:   64-bit
-Server MPM:     event
-  threaded:     yes (fixed thread count)
-    forked:     yes (variable process count)
+Server MPM
 Server compiled with....
  -D APR_HAS_SENDFILE
  -D APR_HAS_MMAP
@@ -242,15 +242,13 @@ Server compiled with....
  -D APR_HAS_OTHER_CHILD
  -D AP_HAVE_RELIABLE_PIPED_LOGS
  -D DYNAMIC_MODULE_LIMIT=256
- -D HTTPD_ROOT="/opt/apache-2.4.29"
- -D SUEXEC_BIN="/opt/apache-2.4.29/bin/suexec"
+ -D HTTPD_ROOT="/opt/apache-2.4.38"
+ -D SUEXEC_BIN="/opt/apache-2.4.38/bin/suexec"
  -D DEFAULT_PIDLOG="logs/httpd.pid"
  -D DEFAULT_SCOREBOARD="logs/apache_runtime_status"
  -D DEFAULT_ERRORLOG="logs/error_log"
  -D AP_TYPES_CONFIG_FILE="conf/mime.types"
  -D SERVER_CONFIG_FILE="conf/httpd.conf"
-
-
 ```
 
 Because we specified the version when we compiled, `apr` is mentioned and the `event` _MPM_ appears further below. Incidentally, at the very bottom we see a reference to the web server’s default configuration file and a bit above this the path we can use to find the default _error_log_.
@@ -278,110 +276,110 @@ $> ls -lh modules
 
 ```bash
 total 8.8M
--rw-r--r-- 1 myuser dune73  14K Oct 16 21:09 httpd.exp
--rwxr-xr-x 1 myuser root    36K Oct 16 21:16 mod_access_compat.so
--rwxr-xr-x 1 myuser root    34K Oct 16 21:17 mod_actions.so
--rwxr-xr-x 1 myuser root    49K Oct 16 21:17 mod_alias.so
--rwxr-xr-x 1 myuser root    31K Oct 16 21:17 mod_allowmethods.so
--rwxr-xr-x 1 myuser root    30K Oct 16 21:17 mod_asis.so
--rwxr-xr-x 1 myuser root    47K Oct 16 21:16 mod_auth_basic.so
--rwxr-xr-x 1 myuser root   102K Oct 16 21:16 mod_auth_digest.so
--rwxr-xr-x 1 myuser root    79K Oct 16 21:16 mod_auth_form.so
--rwxr-xr-x 1 myuser root    30K Oct 16 21:16 mod_authn_anon.so
--rwxr-xr-x 1 myuser root    39K Oct 16 21:16 mod_authn_core.so
--rwxr-xr-x 1 myuser root    43K Oct 16 21:16 mod_authn_dbd.so
--rwxr-xr-x 1 myuser root    33K Oct 16 21:16 mod_authn_dbm.so
--rwxr-xr-x 1 myuser root    33K Oct 16 21:16 mod_authn_file.so
--rwxr-xr-x 1 myuser root    54K Oct 16 21:16 mod_authn_socache.so
--rwxr-xr-x 1 myuser root    70K Oct 16 21:16 mod_authz_core.so
--rwxr-xr-x 1 myuser root    46K Oct 16 21:16 mod_authz_dbd.so
--rwxr-xr-x 1 myuser root    37K Oct 16 21:16 mod_authz_dbm.so
--rwxr-xr-x 1 myuser root    41K Oct 16 21:16 mod_authz_groupfile.so
--rwxr-xr-x 1 myuser root    37K Oct 16 21:16 mod_authz_host.so
--rwxr-xr-x 1 myuser root    31K Oct 16 21:16 mod_authz_owner.so
--rwxr-xr-x 1 myuser root    31K Oct 16 21:16 mod_authz_user.so
--rwxr-xr-x 1 myuser root   129K Oct 16 21:17 mod_autoindex.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_buffer.so
--rwxr-xr-x 1 myuser root   103K Oct 16 21:17 mod_cache_disk.so
--rwxr-xr-x 1 myuser root   229K Oct 16 21:17 mod_cache.so
--rwxr-xr-x 1 myuser root   108K Oct 16 21:17 mod_cache_socache.so
--rwxr-xr-x 1 myuser root   118K Oct 16 21:17 mod_cgid.so
--rwxr-xr-x 1 myuser root    68K Oct 16 21:17 mod_charset_lite.so
--rwxr-xr-x 1 myuser root    33K Oct 16 21:17 mod_data.so
--rwxr-xr-x 1 myuser root   221K Oct 16 21:17 mod_dav_fs.so
--rwxr-xr-x 1 myuser root    83K Oct 16 21:17 mod_dav_lock.so
--rwxr-xr-x 1 myuser root   395K Oct 16 21:17 mod_dav.so
--rwxr-xr-x 1 myuser root    71K Oct 16 21:17 mod_dbd.so
--rwxr-xr-x 1 myuser root   100K Oct 16 21:17 mod_deflate.so
--rwxr-xr-x 1 myuser root    36K Oct 16 21:17 mod_dialup.so
--rwxr-xr-x 1 myuser root    37K Oct 16 21:17 mod_dir.so
--rwxr-xr-x 1 myuser root    33K Oct 16 21:17 mod_dumpio.so
--rwxr-xr-x 1 myuser root    34K Oct 16 21:17 mod_echo.so
--rwxr-xr-x 1 myuser root    32K Oct 16 21:17 mod_env.so
--rwxr-xr-x 1 myuser root    44K Oct 16 21:17 mod_expires.so
--rwxr-xr-x 1 myuser root    74K Oct 16 21:17 mod_ext_filter.so
--rwxr-xr-x 1 myuser root    42K Oct 16 21:17 mod_file_cache.so
--rwxr-xr-x 1 myuser root    62K Oct 16 21:17 mod_filter.so
--rwxr-xr-x 1 myuser root    73K Oct 16 21:17 mod_headers.so
--rwxr-xr-x 1 myuser root    30K Oct 16 21:17 mod_heartbeat.so
--rwxr-xr-x 1 myuser root    79K Oct 16 21:17 mod_heartmonitor.so
--rwxr-xr-x 1 myuser root   163K Oct 16 21:17 mod_include.so
--rwxr-xr-x 1 myuser root    85K Oct 16 21:17 mod_info.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_lbmethod_bybusyness.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_lbmethod_byrequests.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_lbmethod_bytraffic.so
--rwxr-xr-x 1 myuser root    52K Oct 16 21:17 mod_lbmethod_heartbeat.so
--rwxr-xr-x 1 myuser root   103K Oct 16 21:17 mod_log_config.so
--rwxr-xr-x 1 myuser root    43K Oct 16 21:17 mod_log_debug.so
--rwxr-xr-x 1 myuser root    37K Oct 16 21:17 mod_log_forensic.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_logio.so
--rwxr-xr-x 1 myuser root   467K Oct 16 21:17 mod_lua.so
--rwxr-xr-x 1 myuser root    56K Oct 16 21:17 mod_macro.so
--rwxr-xr-x 1 myuser root    88K Oct 16 21:17 mod_mime_magic.so
--rwxr-xr-x 1 myuser root    60K Oct 16 21:17 mod_mime.so
--rwxr-xr-x 1 myuser root   184K Oct 16 21:16 mod_mpm_event.so
--rwxr-xr-x 1 myuser root   136K Oct 16 21:16 mod_mpm_worker.so
--rwxr-xr-x 1 myuser root   117K Oct 16 21:17 mod_negotiation.so
--rwxr-xr-x 1 myuser root   198K Oct 16 21:17 mod_proxy_ajp.so
--rwxr-xr-x 1 myuser root   139K Oct 16 21:17 mod_proxy_balancer.so
--rwxr-xr-x 1 myuser root    59K Oct 16 21:17 mod_proxy_connect.so
--rwxr-xr-x 1 myuser root    40K Oct 16 21:17 mod_proxy_express.so
--rwxr-xr-x 1 myuser root    77K Oct 16 21:17 mod_proxy_fcgi.so
--rwxr-xr-x 1 myuser root    40K Oct 16 21:17 mod_proxy_fdpass.so
--rwxr-xr-x 1 myuser root   131K Oct 16 21:17 mod_proxy_ftp.so
--rwxr-xr-x 1 myuser root   114K Oct 16 21:17 mod_proxy_html.so
--rwxr-xr-x 1 myuser root   121K Oct 16 21:17 mod_proxy_http.so
--rwxr-xr-x 1 myuser root    66K Oct 16 21:17 mod_proxy_scgi.so
--rwxr-xr-x 1 myuser root   357K Oct 16 21:17 mod_proxy.so
--rwxr-xr-x 1 myuser root    59K Oct 16 21:17 mod_proxy_wstunnel.so
--rwxr-xr-x 1 myuser root    33K Oct 16 21:17 mod_ratelimit.so
--rwxr-xr-x 1 myuser root    34K Oct 16 21:17 mod_reflector.so
--rwxr-xr-x 1 myuser root    41K Oct 16 21:17 mod_remoteip.so
--rwxr-xr-x 1 myuser root    48K Oct 16 21:17 mod_reqtimeout.so
--rwxr-xr-x 1 myuser root    40K Oct 16 21:17 mod_request.so
--rwxr-xr-x 1 myuser root   210K Oct 16 21:17 mod_rewrite.so
--rwxr-xr-x 1 myuser root   144K Oct 16 21:17 mod_sed.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_session_cookie.so
--rwxr-xr-x 1 myuser root    53K Oct 16 21:17 mod_session_dbd.so
--rwxr-xr-x 1 myuser root    61K Oct 16 21:17 mod_session.so
--rwxr-xr-x 1 myuser root    47K Oct 16 21:17 mod_setenvif.so
--rwxr-xr-x 1 myuser root    32K Oct 16 21:17 mod_slotmem_plain.so
--rwxr-xr-x 1 myuser root    59K Oct 16 21:17 mod_slotmem_shm.so
--rwxr-xr-x 1 myuser root    52K Oct 16 21:17 mod_socache_dbm.so
--rwxr-xr-x 1 myuser root    40K Oct 16 21:17 mod_socache_memcache.so
--rwxr-xr-x 1 myuser root    82K Oct 16 21:17 mod_socache_shmcb.so
--rwxr-xr-x 1 myuser root    43K Oct 16 21:17 mod_speling.so
--rwxr-xr-x 1 myuser root   897K Oct 16 21:17 mod_ssl.so
--rwxr-xr-x 1 myuser root    80K Oct 16 21:17 mod_status.so
--rwxr-xr-x 1 myuser root    48K Oct 16 21:17 mod_substitute.so
--rwxr-xr-x 1 myuser root    35K Oct 16 21:17 mod_unique_id.so
--rwxr-xr-x 1 myuser root    37K Oct 16 21:17 mod_unixd.so
--rwxr-xr-x 1 myuser root    34K Oct 16 21:17 mod_userdir.so
--rwxr-xr-x 1 myuser root    44K Oct 16 21:17 mod_usertrack.so
--rwxr-xr-x 1 myuser root    27K Oct 16 21:17 mod_version.so
--rwxr-xr-x 1 myuser root    40K Oct 16 21:17 mod_vhost_alias.so
--rwxr-xr-x 1 myuser root    54K Oct 16 21:17 mod_watchdog.so
--rwxr-xr-x 1 myuser root    69K Oct 16 21:17 mod_xml2enc.so
+-rw-r--r-- 1 myuser root    14K Mar  5 21:09 httpd.exp
+-rwxr-xr-x 1 myuser root    36K Mar  5 21:16 mod_access_compat.so
+-rwxr-xr-x 1 myuser root    34K Mar  5 21:17 mod_actions.so
+-rwxr-xr-x 1 myuser root    49K Mar  5 21:17 mod_alias.so
+-rwxr-xr-x 1 myuser root    31K Mar  5 21:17 mod_allowmethods.so
+-rwxr-xr-x 1 myuser root    30K Mar  5 21:17 mod_asis.so
+-rwxr-xr-x 1 myuser root    47K Mar  5 21:16 mod_auth_basic.so
+-rwxr-xr-x 1 myuser root   102K Mar  5 21:16 mod_auth_digest.so
+-rwxr-xr-x 1 myuser root    79K Mar  5 21:16 mod_auth_form.so
+-rwxr-xr-x 1 myuser root    30K Mar  5 21:16 mod_authn_anon.so
+-rwxr-xr-x 1 myuser root    39K Mar  5 21:16 mod_authn_core.so
+-rwxr-xr-x 1 myuser root    43K Mar  5 21:16 mod_authn_dbd.so
+-rwxr-xr-x 1 myuser root    33K Mar  5 21:16 mod_authn_dbm.so
+-rwxr-xr-x 1 myuser root    33K Mar  5 21:16 mod_authn_file.so
+-rwxr-xr-x 1 myuser root    54K Mar  5 21:16 mod_authn_socache.so
+-rwxr-xr-x 1 myuser root    70K Mar  5 21:16 mod_authz_core.so
+-rwxr-xr-x 1 myuser root    46K Mar  5 21:16 mod_authz_dbd.so
+-rwxr-xr-x 1 myuser root    37K Mar  5 21:16 mod_authz_dbm.so
+-rwxr-xr-x 1 myuser root    41K Mar  5 21:16 mod_authz_groupfile.so
+-rwxr-xr-x 1 myuser root    37K Mar  5 21:16 mod_authz_host.so
+-rwxr-xr-x 1 myuser root    31K Mar  5 21:16 mod_authz_owner.so
+-rwxr-xr-x 1 myuser root    31K Mar  5 21:16 mod_authz_user.so
+-rwxr-xr-x 1 myuser root   129K Mar  5 21:17 mod_autoindex.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_buffer.so
+-rwxr-xr-x 1 myuser root   103K Mar  5 21:17 mod_cache_disk.so
+-rwxr-xr-x 1 myuser root   229K Mar  5 21:17 mod_cache.so
+-rwxr-xr-x 1 myuser root   108K Mar  5 21:17 mod_cache_socache.so
+-rwxr-xr-x 1 myuser root   118K Mar  5 21:17 mod_cgid.so
+-rwxr-xr-x 1 myuser root    68K Mar  5 21:17 mod_charset_lite.so
+-rwxr-xr-x 1 myuser root    33K Mar  5 21:17 mod_data.so
+-rwxr-xr-x 1 myuser root   221K Mar  5 21:17 mod_dav_fs.so
+-rwxr-xr-x 1 myuser root    83K Mar  5 21:17 mod_dav_lock.so
+-rwxr-xr-x 1 myuser root   395K Mar  5 21:17 mod_dav.so
+-rwxr-xr-x 1 myuser root    71K Mar  5 21:17 mod_dbd.so
+-rwxr-xr-x 1 myuser root   100K Mar  5 21:17 mod_deflate.so
+-rwxr-xr-x 1 myuser root    36K Mar  5 21:17 mod_dialup.so
+-rwxr-xr-x 1 myuser root    37K Mar  5 21:17 mod_dir.so
+-rwxr-xr-x 1 myuser root    33K Mar  5 21:17 mod_dumpio.so
+-rwxr-xr-x 1 myuser root    34K Mar  5 21:17 mod_echo.so
+-rwxr-xr-x 1 myuser root    32K Mar  5 21:17 mod_env.so
+-rwxr-xr-x 1 myuser root    44K Mar  5 21:17 mod_expires.so
+-rwxr-xr-x 1 myuser root    74K Mar  5 21:17 mod_ext_filter.so
+-rwxr-xr-x 1 myuser root    42K Mar  5 21:17 mod_file_cache.so
+-rwxr-xr-x 1 myuser root    62K Mar  5 21:17 mod_filter.so
+-rwxr-xr-x 1 myuser root    73K Mar  5 21:17 mod_headers.so
+-rwxr-xr-x 1 myuser root    30K Mar  5 21:17 mod_heartbeat.so
+-rwxr-xr-x 1 myuser root    79K Mar  5 21:17 mod_heartmonitor.so
+-rwxr-xr-x 1 myuser root   163K Mar  5 21:17 mod_include.so
+-rwxr-xr-x 1 myuser root    85K Mar  5 21:17 mod_info.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_lbmethod_bybusyness.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_lbmethod_byrequests.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_lbmethod_bytraffic.so
+-rwxr-xr-x 1 myuser root    52K Mar  5 21:17 mod_lbmethod_heartbeat.so
+-rwxr-xr-x 1 myuser root   103K Mar  5 21:17 mod_log_config.so
+-rwxr-xr-x 1 myuser root    43K Mar  5 21:17 mod_log_debug.so
+-rwxr-xr-x 1 myuser root    37K Mar  5 21:17 mod_log_forensic.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_logio.so
+-rwxr-xr-x 1 myuser root   467K Mar  5 21:17 mod_lua.so
+-rwxr-xr-x 1 myuser root    56K Mar  5 21:17 mod_macro.so
+-rwxr-xr-x 1 myuser root    88K Mar  5 21:17 mod_mime_magic.so
+-rwxr-xr-x 1 myuser root    60K Mar  5 21:17 mod_mime.so
+-rwxr-xr-x 1 myuser root   184K Mar  5 21:16 mod_mpm_event.so
+-rwxr-xr-x 1 myuser root   136K Mar  5 21:16 mod_mpm_worker.so
+-rwxr-xr-x 1 myuser root   117K Mar  5 21:17 mod_negotiation.so
+-rwxr-xr-x 1 myuser root   198K Mar  5 21:17 mod_proxy_ajp.so
+-rwxr-xr-x 1 myuser root   139K Mar  5 21:17 mod_proxy_balancer.so
+-rwxr-xr-x 1 myuser root    59K Mar  5 21:17 mod_proxy_connect.so
+-rwxr-xr-x 1 myuser root    40K Mar  5 21:17 mod_proxy_express.so
+-rwxr-xr-x 1 myuser root    77K Mar  5 21:17 mod_proxy_fcgi.so
+-rwxr-xr-x 1 myuser root    40K Mar  5 21:17 mod_proxy_fdpass.so
+-rwxr-xr-x 1 myuser root   131K Mar  5 21:17 mod_proxy_ftp.so
+-rwxr-xr-x 1 myuser root   114K Mar  5 21:17 mod_proxy_html.so
+-rwxr-xr-x 1 myuser root   121K Mar  5 21:17 mod_proxy_http.so
+-rwxr-xr-x 1 myuser root    66K Mar  5 21:17 mod_proxy_scgi.so
+-rwxr-xr-x 1 myuser root   357K Mar  5 21:17 mod_proxy.so
+-rwxr-xr-x 1 myuser root    59K Mar  5 21:17 mod_proxy_wstunnel.so
+-rwxr-xr-x 1 myuser root    33K Mar  5 21:17 mod_ratelimit.so
+-rwxr-xr-x 1 myuser root    34K Mar  5 21:17 mod_reflector.so
+-rwxr-xr-x 1 myuser root    41K Mar  5 21:17 mod_remoteip.so
+-rwxr-xr-x 1 myuser root    48K Mar  5 21:17 mod_reqtimeout.so
+-rwxr-xr-x 1 myuser root    40K Mar  5 21:17 mod_request.so
+-rwxr-xr-x 1 myuser root   210K Mar  5 21:17 mod_rewrite.so
+-rwxr-xr-x 1 myuser root   144K Mar  5 21:17 mod_sed.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_session_cookie.so
+-rwxr-xr-x 1 myuser root    53K Mar  5 21:17 mod_session_dbd.so
+-rwxr-xr-x 1 myuser root    61K Mar  5 21:17 mod_session.so
+-rwxr-xr-x 1 myuser root    47K Mar  5 21:17 mod_setenvif.so
+-rwxr-xr-x 1 myuser root    32K Mar  5 21:17 mod_slotmem_plain.so
+-rwxr-xr-x 1 myuser root    59K Mar  5 21:17 mod_slotmem_shm.so
+-rwxr-xr-x 1 myuser root    52K Mar  5 21:17 mod_socache_dbm.so
+-rwxr-xr-x 1 myuser root    40K Mar  5 21:17 mod_socache_memcache.so
+-rwxr-xr-x 1 myuser root    82K Mar  5 21:17 mod_socache_shmcb.so
+-rwxr-xr-x 1 myuser root    43K Mar  5 21:17 mod_speling.so
+-rwxr-xr-x 1 myuser root   897K Mar  5 21:17 mod_ssl.so
+-rwxr-xr-x 1 myuser root    80K Mar  5 21:17 mod_status.so
+-rwxr-xr-x 1 myuser root    48K Mar  5 21:17 mod_substitute.so
+-rwxr-xr-x 1 myuser root    35K Mar  5 21:17 mod_unique_id.so
+-rwxr-xr-x 1 myuser root    37K Mar  5 21:17 mod_unixd.so
+-rwxr-xr-x 1 myuser root    34K Mar  5 21:17 mod_userdir.so
+-rwxr-xr-x 1 myuser root    44K Mar  5 21:17 mod_usertrack.so
+-rwxr-xr-x 1 myuser root    27K Mar  5 21:17 mod_version.so
+-rwxr-xr-x 1 myuser root    40K Mar  5 21:17 mod_vhost_alias.so
+-rwxr-xr-x 1 myuser root    54K Mar  5 21:17 mod_watchdog.so
+-rwxr-xr-x 1 myuser root    69K Mar  5 21:17 mod_xml2enc.so
 ```
 
 These are all of the modules distributed along with the server by Apache and we are well aware that we selected the _all_ option for the modules to compile. Additional modules are available from third parties. We don’t need all of these modules, but there are some you'll almost always want to have: They are ready to be included.

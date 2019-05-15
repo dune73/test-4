@@ -38,7 +38,7 @@ The problem with false positives is that if you are unlucky, they flood you like
 
 What does that mean? The default installation comes in blocking mode and with an anomaly threshold of 5 for the requests. In fact, this is a very good goal for our work, but it's an overambitious start on an existing production server. The risk is that a false positive raises an alarm, the wrong customer's browser is blocked, a phone call to the manager ensues and you are forced to switch off the Web Application Firewall. In many installations I have seen, this was the end of the story.
 
-Don't let a badly tuned system catch you like this. Instead, start with a high threshold for the anomaly score. Let's say 1,000 for the requests and also 1,000 for the responses for symmetry's sake (in practice, the responses do not score very high). That way you know that no customer is ever going to be blocked, you get reports of false alarms and you gain time to weed them out.
+Don't let a badly tuned system catch you like this. Instead, start with a high threshold for the anomaly score. Let's say 10,000 for the requests and also 10,000 for the responses for symmetry's sake (in practice, the responses do not score very high). That way you know that no customer is ever going to be blocked, you get reports of false alarms and you gain time to weed them out.
 
 If you have a proper security program, this is all performed during an extensive testing phase, so the service never hits production without a strict configuration. But if you start with ModSecurity on an existing production service, starting out with a high threshold in production is the preferred method with minimal interruption to existing customers (zero impact, if you work diligently). 
 
@@ -500,7 +500,7 @@ With this, we have covered these seven highly scoring requests (189 and 231). Wr
 
 ### Step 4: Reducing the anomaly score threshold
 
-We have tuned away the alerts leading to the highest anomaly scores. Actually, anything above 100 is now gone. In a production setup, I would deploy the updated configuration and observe the behaviour a bit. If the high scores are really gone, then it is time to reduce the anomaly limit. A typical first step is from 1,000 to 100. Then we do more rules exclusions, reduce to 50 or so, then to 20, 10 and 5. In fact, a limit of 5 is really strong (first critical alert blocks a request), but for sites with less security needs, a limit of 10 might just be good enough. Anything above does not really block attackers.
+We have tuned away the alerts leading to the highest anomaly scores. Actually, anything above 100 is now gone. In a production setup, I would deploy the updated configuration and observe the behaviour a bit. If the high scores are really gone, then it is time to reduce the anomaly limit. A typical first step is from 10,000 to 100. Then we do more rules exclusions, reduce to 50 or so, then to 20, 10 and 5. In fact, a limit of 5 is really strong (first critical alert blocks a request), but for sites with less security needs, a limit of 10 might just be good enough. Anything above does not really block attackers.
 
 But before we get there, we need to add few more rule exclusions.
 

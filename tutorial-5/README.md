@@ -136,9 +136,10 @@ We define the log format as follows:
 ```bash
 
 LogFormat "%h %{GEOIP_COUNTRY_CODE}e %u [%{%Y-%m-%d %H:%M:%S}t.%{usec_frac}t] \"%r\" %>s %b \
-\"%{Referer}i\" \"%{User-Agent}i\" %v %A %p %R %{BALANCER_WORKER_ROUTE}e %X \"%{cookie}n\" \
-%{UNIQUE_ID}e %{SSL_PROTOCOL}x %{SSL_CIPHER}x %I %O %{ratio}n%% \
-%D %{ModSecTimeIn}e %{ApplicationTime}e %{ModSecTimeOut}e \
+\"%{Referer}i\" \"%{User-Agent}i\" \"%{Content-Type}i\" %{remote}p %v %A %p %R \
+%{BALANCER_WORKER_ROUTE}e %X \"%{cookie}n\" %{UNIQUE_ID}e %{SSL_PROTOCOL}x %{SSL_CIPHER}x \
+%I %O %{ratio}n%% %D %{ModSecTimeIn}e %{ApplicationTime}e %{ModSecTimeOut}e \
+%{ModSecAnomalyScoreInPLs}e %{ModSecAnomalyScoreOutPLs}e \
 %{ModSecAnomalyScoreIn}e %{ModSecAnomalyScoreOut}e" extended
 
 ...
@@ -150,13 +151,17 @@ CustomLog		logs/access.log extended
 
 ### Step 5: Understanding the new, extended log format
 
-The new log format adds 19 values to the access log. This may seem excessive at first glance, but there are in fact good reasons for all of them and having these values available in day-to-day work makes it a lot easier to track down errors.
+The new log format adds 23 values to the access log. This may seem excessive at first glance, but there are in fact good reasons for all of them and having these values available in day-to-day work makes it a lot easier to track down errors.
 
 Let’s have a look at the values in order.
 
 In the description of the _common_ log format we saw that the second value, the _logname_ entry, displays an unused artifact right after the client IP address. We’ll replace this item in the log file with the country code for the client IP address. This is useful, because this country code is strongly characteristic of an IP address. (In many cases there is a big difference whether the request originates nationally or from the South Pacific). It is now practical to place it right next to the IP address and have it add more in-depth information to the meaningless number.
 
 After this comes the time format defined in Tutorial 2, which is oriented to the time format of the error log and is now congruent with it. We are also keeping track of microseconds, giving us precise timing information. We are familiar with the next values.
+
+_\"%Content-Type}i\" describes the Content-Type Request header. This is usually empty, however requests with the HTTP method POST that are used to submit forms or upload data make use of this header. We are ultimately planning to add ModSecurity to our service. Together with that module, the information about the content type becomes really important as the behavior of the ModSecurity engine changes a lot depending on this header.
+
+_%{remote}p_ is the next addition. It stands for port number of the client. So whenever a client opens a TCP connection to a server address and port, he uses one of his own ports. Information about this port can tell us just how many connections a client opens to our server. And in a situation where multiple clients connect using the same IP address (thanks to Network Address Translation NAT), it can help to tell the clients apart.
 
 _%v_ refers to the canonical host name of the server that handled the request. If we talk to the server via an alias, the actual name of the server will be written here, not the alias. In a virtual host setup the virtual host server names are also canonical. They will thus also show up here and we can distinguish among them in the log file.
 
@@ -184,7 +189,7 @@ _%D_ specifies the complete duration of the request in microseconds. Measurement
 
 We’ll continue with performance data. In the future we will be using a stopwatch to separately measure the request on its way to the server, onward to the application and while processing the response. The values for this are set in the _ModSecTimeIn_, _ApplicationTime_ and _ModSecTimeOut_ environment variables.
 
-And, last but not least, there are other values provided to us by the _OWASP ModSecurity Core Rule Set_ (to be handled in a subsequent tutorial), specifically the anomaly score of the request and the response. For the moment it's not important to know all of this. What’s important is that this highly extended log format gives us a foundation upon which we can build without having to adjust the log format again.
+And, last but not least, there are other values provided to us by the _OWASP ModSecurity Core Rule Set_ (to be handled in a subsequent tutorial), specifically the anomaly scores of the request and the response. For the moment it's not important to know all of this. What’s important is that this highly extended log format gives us a foundation upon which we can build without having to adjust the log format again.
 
 
 ### Step 6: Writing other request and response headers to an additional log file
@@ -236,60 +241,56 @@ Stringed together, we get a lot of data. (If there is an error message, this cou
 It may take a moment to process this line. As a result we see the following entries in the log file:
 
 ```bash
-127.0.0.1 - - [2015-10-03 05:54:09.090117] "GET /index.html?n=1a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 446 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.133625] "GET /index.html?n=2a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 436 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.179561] "GET /index.html?n=3a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 411 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.223015] "GET /index.html?n=4a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 413 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.266520] "GET /index.html?n=5a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 413 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.310221] "GET /index.html?n=6a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 413 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.353847] "GET /index.html?n=7a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 421 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.397234] "GET /index.html?n=8a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 408 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.440755] "GET /index.html?n=9a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 534 1485 -% 406 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.484324] "GET /index.html?n=10a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 413 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.527460] "GET /index.html?n=11a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 411 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.570871] "GET /index.html?n=12a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 412 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.614222] "GET /index.html?n=13a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 413 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.657637] "GET /index.html?n=14a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 445 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:09.701005] "GET /index.html?n=15a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 412 - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.594159] "GET /index.html?n=1a HTTP/1.1" 200 45 "-" "curl/7.58.0" … 
+"-" 53252 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjEAAAAAI TLSv1.2 … 
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 97 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.612331] "GET /index.html?n=2a HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"-" 53254 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjEQAAAAg TLSv1.2 …
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 123 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.634044] "GET /index.html?n=3a HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"-" 53256 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjEgAAAAc TLSv1.2 …
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 136 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.652333] "GET /index.html?n=4a HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"-" 53258 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjEwAAAAs TLSv1.2 …
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 100 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.669342] "GET /index.html?n=5a HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"-" 53260 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjFAAAAA4 TLSv1.2 …
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 101 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.686449] "GET /index.html?n=6a HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"-" 53262 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjFQAAABA TLSv1.2 …
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 102 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:35.703428] "GET /index.html?n=7a HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"-" 53264 localhost 127.0.0.1 443 - - + "-" XFKAt7evwRxnTvzP--AjFgAAABQ TLSv1.2 …
+ECDHE-RSA-AES256-GCM-SHA384 422 1463 -% 101 - - - - - - -
 ...
-127.0.0.1 - - [2015-10-03 05:54:13.520931] "GET /index.html?n=98a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 431 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:13.568819] "GET /index.html?n=99a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 535 1485 -% 453 - - - - -
-127.0.0.1 - - [2015-10-03 05:54:13.613138] "GET /index.html?n=100a HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 536 1485 -% 470 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:08.192381] "POST /index.html?n=1b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 648 1485 -% 431 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:08.244061] "POST /index.html?n=2b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 685 1485 -% 418 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:08.294934] "POST /index.html?n=3b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 723 1485 -% 428 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:08.345959] "POST /index.html?n=4b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 760 1485 -% 466 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:08.396783] "POST /index.html?n=5b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 797 1485 -% 418 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:08.447396] "POST /index.html?n=6b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 834 1485 -% 423 - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.060573] "POST /index.html?n=1b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53452 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjdAAAAAE …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 536 1463 -% 97 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.080029] "POST /index.html?n=2b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53454 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjdQAAAAU …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 573 1463 -% 113 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.100103] "POST /index.html?n=3b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53456 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjdgAAAAQ …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 611 1463 -% 105 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.119907] "POST /index.html?n=4b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53458 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjdwAAAAo …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 648 1463 -% 93 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.137620] "POST /index.html?n=5b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53460 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjeAAAAA0 …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 685 1463 -% 98 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.155453] "POST /index.html?n=6b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53462 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjeQAAABE …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 722 1463 -% 97 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:48.174826] "POST /index.html?n=7b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53464 localhost 127.0.0.1 443 - - + "-" XFKAxLevwRxnTvzP--AjegAAABM …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 759 1463 -% 95 - - - - - - -
 ...
-127.0.0.1 - - [2015-10-03 05:55:13.400345] "POST /index.html?n=99b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 4328 1539 -% 878 - - - - -
-127.0.0.1 - - [2015-10-03 05:55:13.453047] "POST /index.html?n=100b HTTP/1.1" 200 45 "-" "curl/7.35.0" … 
- www.example.com 127.0.0.1 443 - - "-" - TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 4366 1539 -% 910 - - - - -
+127.0.0.1 - - [2019-01-31 05:59:50.533651] "POST /index.html?n=99b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53648 localhost 127.0.0.1 443 - - + "-" XFKAxrevwRxnTvzP--Aj1gAAABM …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 4216 1517 -% 1740 - - - - - - -
+127.0.0.1 - - [2019-01-31 05:59:50.555242] "POST /index.html?n=100b HTTP/1.1" 200 45 "-" "curl/7.58.0" …
+"application/x-www-form-urlencoded" 53650 localhost 127.0.0.1 443 - - + "-" XFKAxrevwRxnTvzP--Aj1wAAABc …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 4254 1517 -% 264 - - - - - - -
 ```
 
 As predicted above, a lot of values are still empty or indicated by _-_. But we see that we talked to server _www.example.com_ on port 443 and that the size of the request increased with every _POST_ request, with it being almost 4K, or 4096 bytes, in the end. Simple analyses can already be performed with this simple log file.
@@ -297,7 +298,7 @@ As predicted above, a lot of values are still empty or indicated by _-_. But we 
 
 ### Step 8: Performing simple analyses using the extended log format
 
-If you take a close look at the example log file you will see that the duration of the requests are not evenly distributed and that there is a single outlier. We can identify the outlier as follows:
+If you take a close look at the example log output above you will see that the duration of the requests are not evenly distributed and that there is a single outlier. We can identify the outlier as follows:
 
 ```bash
 $> egrep -o "\% [0-9]+ " logs/access.log | cut -b3- | tr -d " " | sort -n
@@ -308,18 +309,16 @@ One detail that will help us to avoid errors in the future is the space followin
 
 ```bash
 ...
-925
-932
-935
-939
-958
-1048
-1093
-1393
-3937
+354
+355
+357
+363
+363
+363
+1740
 ```
 
-In our example there are four values with a duration of over 1,000 microseconds, or more than one millisecond, three of which are within reason, but the one with 4 milliseconds is clearly a statistical outlier, clearly setting itself apart from the other values.
+In our example, almost all of the requests have been handled very fast. Yet, there is a single one with a duration of over 1,000 microseconds, or more than one millisecond. This is still within reason, but interesting to see how this request is setting itself apart from the other values as a statistical outlier.
 
 We know that we made 100 GET and 100 POST requests. But for the sake of practice, let’s count them again:
 
@@ -357,88 +356,103 @@ Analyses using a real log file from a production server are much more exciting. 
 
 ```bash
 $> head tutorial-5-example-access.log
-75.249.65.145 US - [2015-09-02 10:42:51.003372] "GET /cms/tina-access-editor-for-download/ …
-HTTP/1.1" 200 7113 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" … 
-www.example.com 124.165.3.7 443 redirect-handler - + "-" Vea2i8CoAwcAADevXAgAAAAB TLSv1.2 …
-ECDHE-RSA-AES128-GCM-SHA256 701 12118 -% 88871 803 0 0 0 0
-71.180.228.107 US - [2015-09-02 11:14:02.800605] "GET …
-/cms/application_3_applikationsserver_aufsetzen/?q=application_2_tina_minimal_konfigurieren …
-HTTP/1.1" 200 12962 "-" "Mozilla/5.0 (compatible; Yahoo! Slurp; …
-http://help.yahoo.com/help/us/ysearch/slurp)" www.example.com 124.165.3.7 443 redirect-handler …
-- + "-" Vea92sCoAwcAADRophUAAAAX TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 700 17946 -% 77038 1669 0 0 0 0
-5.45.105.71 DE - [2015-09-02 11:32:39.371240] "GET /cms/feed/ HTTP/1.1" 200 35422 "-" "Tiny Tiny …
-RSS/1.15.3 (http://tt-rss.org/)" www.example.com 124.165.3.7 443 redirect-handler - + "-" …
-VebCN8CoAwcAADRcb14AAAAE TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 671 40343 -% 144443 791 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:35.654011] "GET /robots.txt HTTP/1.0" 404 21023 …
- "-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; http://www.majestic12.co.uk/bot.php?+)" …
-www.example.com 124.165.3.7 443 redirect-handler - - "-" VebIS8CoAwcAABx@Xo4AAAAJ …
-TLSv1 AES256-SHA 894 25257 -% 68856 836 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:37.486603] "GET /cms/2013/09/23/ HTTP/1.1" 200 22822 …
-"-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; http://www.majestic12.co.uk/bot.php?+)" …
-www.example.com 124.165.3.7 443 redirect-handler - + "-" VebITcCoAwcAADRophsAAAAX TLSv1 …
-AES256-SHA 627 23702 -% 75007 805 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:39.253209] "GET …
-/cms/2013/09/23/convert-from-splashid-safe-to-keepass-password-safe/ HTTP/1.1" 200 6450 …
-"-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; http://www.majestic12.co.uk/bot.php?+)" …
-www.example.com 124.165.3.7 443 redirect-handler - + "-" VebIT8CoAwcAADRophwAAAAX …
-TLSv1 AES256-SHA 485 6900 -% 79458 808 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:40.893992] "GET …
-/cms/2013/09/23/convert-from-splashid-safe-to-keepass-password-safe/feed/ …
-HTTP/1.1" 200 463 "-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; …
-http://www.majestic12.co.uk/bot.php?+)" www.example.com 124.165.3.7 443 …
-redirect-handler - + "-" VebIUMCoAwcAADRoph0AAAAX TLSv1 AES256-SHA 485 991 -% 25378 798 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:43.558478] "GET /cms/2013/10/21/ HTTP/1.1" …
-200 6171 "-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; …
-http://www.majestic12.co.uk/bot.php?+)" www.example.com 124.165.3.7 443 redirect-handler …
-- + "-" VebIU8CoAwcAADRbdGkAAAAD TLSv1 AES256-SHA 611 6702 -% 78686 816 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:45.287565] "GET …
-/cms/2013/10/21/nftables-to-replace-iptables-firewall-facility-in-upcoming-linux-kernel/ …
-HTTP/1.1" 200 6492 "-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; …
-http://www.majestic12.co.uk/bot.php?+)" www.example.com 124.165.3.7 443 redirect-handler …
-- + "-" VebIVcCoAwcAADRbdGoAAAAD TLSv1 AES256-SHA 501 6932 -% 82579 769 0 0 0 0
-155.80.44.115 IT - [2015-09-02 11:58:49.801640] "GET …
-/cms/2013/10/21/nftables-to-replace-iptables-firewall-facility-in-upcoming-linux-kernel/feed/ …
-HTTP/1.1" 200 475 "-" "Mozilla/5.0 (compatible; MJ12bot/v1.4.5; …
-http://www.majestic12.co.uk/bot.php?+)" www.example.com 124.165.3.7 443 redirect-handler - + …
-"-" VebIWcCoAwcAADRbdGsAAAAD TLSv1 AES256-SHA 501 1007 -% 23735 833 0 0 0 0
+192.31.242.0 US - [2019-01-21 23:51:44.365656] "GET …
+/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/ HTTP/1.1" 200 10273 …
+"https://www.google.com/" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, …
+like Gecko) Chrome/71.0.3578.98 Safari/537.36" "-" 13258 www.example.com 192.168.3.7 443 …
+redirect-handler - + "ReqID--" XEZNAMCoAwcAAAxAiBgAAAAA TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 …
+776 14527 -% 360398 2128 0 0 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:44.943942] "GET …
+/cds/snippets/themes/customizr/assets/shared/fonts/fa/css/fontawesome-all.min.css?ver=4.1.12 …
+HTTP/1.1" 200 7439 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 13258 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAMCoAwcAAAxAiBkAAAAA …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 507 7950 -% 2509 1039 0 164 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:44.947470] "GET …
+/cds/snippets/themes/customizr/inc/assets/css/tc_common.min.css?ver=4.1.12 HTTP/1.1" 200 28225 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 32554 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAMCoAwcAAAxDkkUAAAAD …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 754 32406 -% 6714 1338 0 168 0-0-0-0 0-0-0-0 0 0
+212.147.59.0 CH - [2019-01-21 23:51:44.849966] "GET /cds/ HTTP/1.1" 200 31332 "-" "check_http/v2.1.4 …
+(nagios-plugins 2.1.4)" "-" 16291 www.example.com 192.168.3.7 443 application/x-httpd-php - - …
+"ReqID--" XEZNAMCoAwcAAAxEZFIAAAAE TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 586 35548 -% 144762 1180 0 …
+13771 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:45.143819] "GET …
+/cds/snippets/themes/customizr-child/inc/assets/css/neagreen.min.css?ver=4.1.12 HTTP/1.1" 200 2458 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 13258 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAcCoAwcAAAxAiBoAAAAA …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 494 2969 -% 1946 1070 0 141 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:45.269615] "GET …
+/cds/snippets/themes/customizr-child/style.css?ver=4.1.12 HTTP/1.1" 200 483 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 22078 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAcCoAwcAAAxBiDkAAAAB …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 737 4544 -% 4237 2221 0 241 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:45.309680] "GET …
+/cds/snippets/themes/customizr/assets/front/js/libs/fancybox/jquery.fancybox-1.3.4.min.css?ver=4.9.8 …
+HTTP/1.1" 200 981 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 32554 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAcCoAwcAAAxDkkYAAAAD …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 515 1461 -% 2830 1656 0 200 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:45.467686] "GET …
+/cds/includes/js/jquery/jquery-migrate.min.js?ver=1.4.1 HTTP/1.1" 200 4014 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 35193 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAcCoAwcAAAyCROcAAAAF …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 721 8120 -% 3238 1536 0 142 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:45.469159] "GET …
+/cds/snippets/themes/customizr/assets/front/js/libs/fancybox/jquery.fancybox-1.3.4.min.js?ver=4.1.12 …
+HTTP/1.1" 200 5209 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 46005 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAcCoAwcAAAxCwlQAAAAC …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 765 9315 -% 2938 1095 0 246 0-0-0-0 0-0-0-0 0 0
+192.31.242.0 US - [2019-01-21 23:51:45.469177] "GET …
+/cds/snippets/themes/customizr/assets/front/js/libs/modernizr.min.js?ver=4.1.12 HTTP/1.1" 200 5926 …
+"https://www.example.com/cds/2016/10/16/using-ansible-to-fetch-information-from-ios-devices/" …
+"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 …
+Safari/537.36" "-" 42316 www.example.com 192.168.3.7 443 - - + "ReqID--" XEZNAcCoAwcAAAyDuEIAAAAG …
+TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 744 10032 -% 3022 1094 0 245 0-0-0-0 0-0-0-0 0 0
 ```
 
 Let’s have a look at the distribution of _GET_ and _POST_ requests here:
 
 ```bash
 $> cat tutorial-5-example-access.log  | egrep  -o '"(GET|POST)'  | cut -b2- | sort | uniq -c
-   9781 GET
-     12 POST
+   9466 GET
+    115 POST
 ```
 
 This is a clear result. Do we actually see many errors? Or requests answered with an HTTP error code?
 
 ```bash
 $> cat tutorial-5-example-access.log | cut -d\" -f3 | cut -d\  -f2 | sort | uniq -c
-   9040 200
-      5 206
-    447 301
-     47 304
-     16 400
-      3 403
-    401 404
-     41 408
+   9397 200
+      3 206
+    233 301
+     67 304
+      9 400
+     58 403
+    233 404
 ```
 
-Besides the sixteen requests with the “400 Bad Request” HTTP response there is a large number of 404s (“404 Not Found”). HTTP status 400 means a protocol error. As is commonly known, 404 is a page not found. This is where we should have a look at the permissions. But before we continue, a note about the request using the _cut_ command. We have subdivided the log line using the _”_-delimiter, extracted the third field with this subdivision and then further subdivided the content, but this time with a space (note the _\_ character) as the delimiter and extracted the second field, which is now the status. Afterwards this was sorted and the _uniq function_ used in count mode. We will be seeing that this type of access to the data is a pattern that repeats itself.
+Besides the nine requests with the “400 Bad Request” HTTP response there is a large number of 404s (“404 Not Found”). HTTP status 400 means a protocol error. As is commonly known, 404 is a page not found. This is where we should have a look at the permissions. But before we continue, a note about the request using the _cut_ command. We have subdivided the log line using the _”_-delimiter, extracted the third field with this subdivision and then further subdivided the content, but this time with a space (note the _\_ character) as the delimiter and extracted the second field, which is now the status. Afterwards this was sorted and the _uniq function_ used in count mode. We will be seeing that this type of access to the data is a pattern that repeats itself.
 Let’s take a closer look at the log file.
 
-Further above we discussed encryption protocols and how their analyses was a foundation for deciding on an appropirate reaction to the _POODLE_ vulnerability. In practice, which encryption protocols are actually on the server since then:
+Further above we discussed encryption protocols and how their analyses was a foundation for deciding on an appropriate reaction to the _POODLE_ vulnerability. In practice, which encryption protocols are actually on the server since then:
 
 ```bash
-$> cat tutorial-5-example-access.log | cut -d\" -f9 | cut -d\  -f3 | sort | uniq -c | sort -n
-     21 -
-     65 TLSv1.1
-   1764 TLSv1
-   8150 TLSv1.2
+$> cat tutorial-5-example-access.log | cut -d\" -f11 | cut -d\  -f3 | sort | uniq -c | sort -n
+      4 -
+    155 TLSv1
+   9841 TLSv1.2
 ```
 
-It appears that Apache is not always recording an encryption protocol. This is a bit strange, but because it is a very rare case, we won’t be pursuing it for the moment. What’s more important are the numerical ratios between the TLS protocols. After disabling _SSLv3_, the _TLSv1.2_ protocol is dominant, in addition to a substantial percentage of _TLSv1.0_. The protocol _TLSv1.1_ can be disregarded because it is only used in very few requests.
+It appears that Apache is not always recording an encryption protocol. This is a bit strange, but because it is a very rare case, we won’t be pursuing it for the moment. What’s more important are the numerical ratios between the TLS protocols. After disabling _SSLv3_, the _TLSv1.2_ protocol is dominant and _TLSv1.0_ is slowly being phased out.
 
 We again got to the desired result by a series of _cut_ commands. It would actually be advisable to take note of these commands, because will be needing them again and again. It would then be an alias list as follows:
 
@@ -456,28 +470,8 @@ alias alresponsebodysize='cut -d\" -f3 | cut -d\  -f3'
 alias alreferer='cut -d\" -f4 | sed "s/^-$/**NONE**/"'
 alias alreferrer='cut -d\" -f4 | sed "s/^-$/**NONE**/"'
 alias aluseragent='cut -d\" -f6 | sed "s/^-$/**NONE**/"'
-alias alservername='cut -d\" -f7 | cut -d\  -f2'
-alias alservername='cut -d\" -f7 | cut -d\  -f2'
-alias allocalip='cut -d\" -f7 | cut -d\  -f3'
-alias alcanonicalport='cut -d\" -f7 | cut -d\  -f4'
-alias alport='cut -d\" -f7 | cut -d\  -f4'
-alias alhandler='cut -d\" -f7 | cut -d\  -f5'
-alias albalroute='cut -d\" -f7 | cut -d\  -f6'
-alias alconnstatus='cut -d\" -f7 | cut -d\  -f7'
-alias altrkcookie='cut -d\" -f8'
-alias alreqid='cut -d\" -f9 | cut -d\  -f2'
-alias alsslprotocol='cut -d\" -f9 | cut -d\  -f3'
-alias alsslcipher='cut -d\" -f9 | cut -d\  -f4'
-alias alioin='cut -d\" -f9 | cut -d\  -f5'
-alias alioout='cut -d\" -f9 | cut -d\  -f6'
-alias aldeflateratio='cut -d\" -f9 | cut -d\  -f7 | tr -d %'
-alias alduration='cut -d\" -f9 | cut -d\  -f8'
-alias aldurationin='cut -d\" -f9 | cut -d\  -f9'
-alias aldurationapp='cut -d\" -f9 | cut -d\  -f10'
-alias aldurationout='cut -d\" -f9 | cut -d\  -f11'
-alias alscorein='cut -d\" -f9 | cut -d\  -f12 | tr "-" "0"'
-alias alscoreout='cut -d\" -f9 | cut -d\  -f13 | tr "-" "0"'
-alias alscores='cut -d\" -f9 | cut -d\  -f12,13 | tr " " ";" | tr "-" "0"'
+alias alcontenttype='cut -d\" -f8'
+...
 ```
 
 All of the aliases begin with _al_. This stands for _ApacheLog_ or _AccessLog_. This is followed by the field name. The individual aliases are not sorted alphabetically. They instead follow the sequence of the fields in the format of the log file.
@@ -492,10 +486,9 @@ Let’s use the new alias right away:
 
 ```bash
 $> cat tutorial-5-example-access.log | alsslprotocol | sort | uniq -c | sort -n
-     21 -
-     65 TLSv1.1
-   1764 TLSv1
-   8150 TLSv1.2
+      4 -
+    155 TLSv1
+   9841 TLSv1.2
 ```
 This is a bit easier. But the repeated typing of _sort_ followed by _uniq -c_ and then a numerical _sort_ yet again is tiresome. Because it is again a repeating pattern, an alias is also worthwhile here, which can be abbreviated to _sucs_: a merger of the beginning letters and the _c_ from _uniq -c_.
 
@@ -508,10 +501,9 @@ This then enables us to do the following:
 
 ```bash
 $> cat tutorial-5-example-access.log | alsslprotocol | sucs
-     21 -
-     65 TLSv1.1
-   1764 TLSv1
-   8150 TLSv1.2
+      4 -
+    155 TLSv1
+   9841 TLSv1.2
 ```
 
 This is now a simple command that is easy to remember and easy to write. We now have a look at the numerical ratio of 1764 to 8150. We have a total of exactly 10,000 requests; the percentage values can be derived by looking at it. In practice however log files may not counted so easily, we will thus be needing help calculating the percentages.
@@ -532,10 +524,9 @@ The _sucspercent_ alias above then assumes this setup. The _awk_ script is avail
 $> cat tutorial-5-example-access.log | alsslprotocol | sucspercent 
                          Entry        Count Percent
 ---------------------------------------------------
-                             -           21   0.21%
-                       TLSv1.1           65   0.65%
-                         TLSv1         1764  17.64%
-                       TLSv1.2         8150  81.50%
+                             -            4   0.04%
+                         TLSv1          155   1.55%
+                       TLSv1.2        9,841  98.41%
 ---------------------------------------------------
                          Total        10000 100.00%
 ```
@@ -547,19 +538,14 @@ Wonderful. We are now able to output the numerical ratios for any repeating valu
 $> cat tutorial-5-example-access.log | alsslcipher | sucspercent 
                          Entry        Count Percent
 ---------------------------------------------------
-         DHE-RSA-AES256-SHA256            2   0.02%
-        ECDHE-RSA-DES-CBC3-SHA            5   0.05%
-                  DES-CBC3-SHA            8   0.08%
-                             -           21   0.21%
-     DHE-RSA-AES256-GCM-SHA384           43   0.43%
-       ECDHE-RSA-AES128-SHA256           86   0.86%
-          ECDHE-RSA-AES128-SHA          102   1.02%
-            DHE-RSA-AES256-SHA          169   1.69%
-                    AES256-SHA          565   5.65%
-       ECDHE-RSA-AES256-SHA384          919   9.19%
-          ECDHE-RSA-AES256-SHA         1008  10.08%
-   ECDHE-RSA-AES256-GCM-SHA384         1176  11.76%
-   ECDHE-RSA-AES128-GCM-SHA256         5896  58.96%
+                             -            4   0.04%
+                    AES256-SHA           23   0.23%
+     DHE-RSA-AES256-GCM-SHA384           42   0.42%
+       ECDHE-RSA-AES128-SHA256           50   0.50%
+          ECDHE-RSA-AES256-SHA          156   1.56%
+   ECDHE-RSA-AES128-GCM-SHA256          171   1.71%
+       ECDHE-RSA-AES256-SHA384          234   2.34%
+   ECDHE-RSA-AES256-GCM-SHA384        9,320  93.20%
 ---------------------------------------------------
                          Total        10000 100.00%
 ```
@@ -570,28 +556,13 @@ A good overview on the fly. We can be satisfied with this for the moment. Is the
 $> cat tutorial-5-example-access.log | alprotocol | sucspercent 
                          Entry        Count Percent
 ---------------------------------------------------
-                          quit            4   0.04%
-                      **NONE**           41   0.41%
-                      HTTP/1.0           70   0.70%
-                      HTTP/1.1         9885  98.85%
+                      HTTP/1.0           66   0.66%
+                      HTTP/1.1        9,934  99.34%
 ---------------------------------------------------
                          Total        10000 100.00%
 ```
 
-The obsolete _HTTP/1.0_ still appears, and something seems to have gone wrong with 45 requests. In the calculation let’s concentrate on the successful requests with a valid protocol and have another look at the percentages:
-
-```bash
-$> cat tutorial-5-example-access.log | alprotocol | grep HTTP |  sucspercent
-                         Entry        Count Percent
----------------------------------------------------
-                      HTTP/1.0           70   0.70%
-                      HTTP/1.1         9885  99.30%
----------------------------------------------------
-                         Total         9955 100.00%
-``` 
-
-An additional _grep_ is used here. We can narrow down the "alias field extraction -> sucs” pattern via additional filter operations.
-
+The obsolete _HTTP/1.0_ still appears, but _HTTP/1.1_ is clearly dominant.
 
 With the different aliases for the extraction of values from the log file and the two _sucs_ and _sucspercent_ aliases we have come up with a handy tool enabling us to simply answer questions about the relative frequency of repeating values using the same pattern of commands.
 
@@ -601,31 +572,31 @@ Such a script is also available for download: [basicstats.awk](https://raw.githu
 
 ```bash
 $> cat tutorial-5-example-access.log | alioout | basicstats.awk
-Num of values:          10'000.00
-         Mean:          15'375.98
-       Median:           6'646.00
+Num of values:          10,000.00
+         Mean:          19,360.91
+       Median:           7,942.00
           Min:               0.00
-          Max:         340'179.00
-        Range:         340'179.00
-Std deviation:          25'913.14
+          Max:       3,920,007.00
+        Range:       3,920,007.00
+Std deviation:          52,480.41
 ```
 
-These numbers give a clear picture of the service. With an average response size of 15 KB and a median of 6.6 KB we have a typical web service. Specifically, the median means that half of the responses were smaller than 6.6 KB. The largest response came in at 340 KB, the standard deviation of just under 26 KB means that the large values were less frequent overall.
+These numbers give a clear picture of the service. With a mean response size of 19 KB and a median of 7.9 KB we have a typical web service. Specifically, the median means that half of the responses were smaller than 7.9 KB. The largest response came in at almost 4 MB, the standard deviation of just over 52 KB means that the large values were less frequent overall.
 
 How does the duration of the requests look? Do we have a similar homogeneous picture?
 
 ```bash
 $> cat tutorial-5-example-access.log | alduration | basicstats.awk
-Num of values:          10'000.00
-         Mean:          91'306.41
-       Median:           2'431.50
-          Min:              18.00
-          Max:     301'455'050.00
-        Range:     301'455'032.00
-Std deviation:       3'023'884.17
+Num of values:          10,000.00
+         Mean:          74,852.49
+       Median:           3,684.50
+          Min:             641.00
+          Max:      31,360,516.00
+        Range:      31,359,875.00
+Std deviation:         695,283.17
 ```
 
-It’s important to remember that we are dealing in microseconds here. The median was 2400 microseconds, which is just over 2 milliseconds. At 91 milliseconds, the mean is much larger. We obviously have a lot of outliers which have pushed up the mean. In fact, we have a maximum value of 301 seconds and less surprisingly a standard deviation of 3 seconds. The picture is thus less homogeneous and we have at least some requests that should be investigated. But this is now getting a bit more complicated. The suggested method is only one of many possible and is included here as a suggestion and inspiration for further work with the log file:
+It’s important to remember that we are dealing in microseconds here. The median was 3,684 microseconds, which is just over 3 milliseconds. At 74 milliseconds, the mean is much larger. We obviously have a lot of outliers which have pushed up the mean. In fact, we have a maximum value of 31 seconds and less surprisingly a standard deviation of 695 milliseconds. The picture is thus less homogeneous and we have at least some requests that should be investigated. But this is now getting a bit more complicated. The suggested method is only one of many possible and is included here as a suggestion and inspiration for further work with the log file:
 
 ```bash
 $> cat tutorial-5-example-access.log | grep "\"GET " | aluri | cut -d\/ -f1,2,3 | sort | uniq \
@@ -633,19 +604,20 @@ $> cat tutorial-5-example-access.log | grep "\"GET " | aluri | cut -d\/ -f1,2,3 
 | grep Mean | sed 's/.*: //'); echo "$MEAN $P"; done \
 | sort -n
 ...
-       97459 /cms/
-       97840 /cms/application-download-soft
-       98959 /cms/category
-      109910 /cms/technical-blog
-      115564 /cms/content
-      146096 /cms/feed
-      146881 /files/application-9-sshots-appl.png
-      860889 /cms/download-softfiles
+	...
+        122,309.45 /cds/holiday-planner-download
+        124,395.18 /cds/tools-inventory
+        137,230.18 /cds/weather-app
+        143,830.30 /cds/2016
+        146,114.83 /cds/2015
+        163,269.89 /cds/category
+        216,229.88 /cds/tutorials
+        576,129.71 /storage/static
 ```
 
 What happens here in order? We use _grep_ to filter _GET_ requests. We extract the _URI_ and use _cut_ to cut it. We are only interested in the first part of the path. We limit ourselves here in order to get a reasonable grouping, because too many different paths will add little value. The path list we get is then sorted alphabetically and reduced by using _uniq_. This is half the work.
 
-We now sequentially place the paths into variable _P_ and use _while_ to make a loop. In the loop we calculate the basic statistics for the path saved in _P_ and filter the output for the mean. In doing so, we use _sed_ to filter in such a way that the _MEAN variable includes only a number and not the _Mean_ name itself. We now output this average value and the path names. End of the loop. Last, but not least, we sort everything numerically and get an overview of which paths resulted in requests with longer response times. A path named _/cms/download-softfiles_ apparently comes out on top. The keyword _download_ makes this appear plausible.
+We now sequentially place the paths into variable _P_ and use _while_ to make a loop. In the loop we calculate the basic statistics for the path saved in _P_ and filter the output for the mean. In doing so, we use _sed_ to filter in such a way that the _MEAN variable includes only a number and not the _Mean_ name itself. We now output this average value and the path names. End of the loop. Last, but not least, we sort everything numerically and get an overview of which paths resulted in requests with longer response times. A path named _/storage/static_ apparently comes out on top. The keyword _storage_ makes this appear plausible.
 
 This brings us to the end of this tutorial. The goal was to introduce an expanded log format and to demonstrate working with the log files. In doing so, we repeatedly used a series of aliases and two _awk_ scripts, which can be chained in different ways. With these tools and the necessary experience in their handling you will be able to quickly get at the information available in the log files.
 

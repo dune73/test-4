@@ -1,5 +1,7 @@
 ##### Changelog
 
+* 2019-04-03: Raise initial anomaly threshold to 10,000.
+* 2019-03-21: Upgrade CRS 3.0.2 -> 3.1.0
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-12-17: Renumbered 200004->200005
 * 2017-07-26: Upgrade CRS 3.0.0 -> 3.0.2
