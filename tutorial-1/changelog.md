@@ -1,6 +1,6 @@
 ##### Changelog
 
-* 2019-05-16: Updated apr (1.7.0) and Apache (2.4.39)
+* 2019-05-16: Updated apr (1.7.0) and Apache (2.4.39), typo
 * 2019-05-12: Add nikto to the list of packages to be installed
 * 2019-03-31: Add ruby to the list of packages to be installed
 * 2019-03-05: Update apr (1.6.5), Apache (2.4.38), adopted sha256 checksums
