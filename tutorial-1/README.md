@@ -25,23 +25,23 @@ Since the release of version 2.4, the Apache web server comes without two import
 Let’s start with _apr_ and download the package.
 
 ```bash
-$> wget https://www-eu.apache.org/dist/apr/apr-1.6.5.tar.bz2
+$> wget https://www-eu.apache.org/dist/apr/apr-1.7.0.tar.bz2
 ```
 
 We’ll now download the checksum of the source code file from Apache. We’ll verify the integrity of the source code we downloaded that way. For better security we’ll be using a secure connection for downloading. Without https this verification doesn’t make much sense. Both files, the source code and the small checksum file, should be placed together in `/usr/src/apache`. We can now verify the checksum:
 
 
 ```bash
-$> wget https://www.apache.org/dist/apr/apr-1.6.5.tar.bz2.sha256
-$> sha256sum --check apr-1.6.5.tar.bz2.sha256
-apr-1.6.5.tar.bz2: OK
+$> wget https://www.apache.org/dist/apr/apr-1.7.0.tar.bz2.sha256
+$> sha256sum --check apr-1.7.0.tar.bz2.sha256
+apr-1.7.0.tar.bz2: OK
 ```
 
 The test should not result in any problems, _OK_. We can now continue with unpacking, pre-configuring and compiling _apr_.
 
 ```bash
-$> tar -xvjf apr-1.6.5.tar.bz2
-$> cd apr-1.6.5
+$> tar -xvjf apr-1.7.0.tar.bz2
+$> cd apr-1.7.0
 $> ./configure --prefix=/usr/local/apr/
 ```
 
@@ -107,7 +107,7 @@ We’ll now download the program code from the internet. This can be done by dow
 
 ```bash
 $> cd /usr/src/apache
-$> wget https://www-eu.apache.org/dist//httpd/httpd-2.4.38.tar.bz2
+$> wget https://www-eu.apache.org/dist//httpd/httpd-2.4.39.tar.bz2
 ```
 
 The compressed source code is approximately 5 MB in size.
@@ -115,9 +115,9 @@ The compressed source code is approximately 5 MB in size.
 We’ll now download the checksum of the source code file from Apache. At least it’s available as a _sha1 checksum_. We’ll again be using a secure connection for better security. Without https this verification doesn’t make much sense.
 
 ```bash
-$> wget https://www.apache.org/dist/httpd/httpd-2.4.38.tar.bz2.sha256
-$> sha256sum --check httpd-2.4.38.tar.bz2.sha256
-httpd-2.4.38.tar.bz2: OK
+$> wget https://www.apache.org/dist/httpd/httpd-2.4.39.tar.bz2.sha256
+$> sha256sum --check httpd-2.4.39.tar.bz2.sha256
+httpd-2.4.39.tar.bz2: OK
 ```
 
 ### Step 4: Unpacking and configuring the compiler
@@ -125,7 +125,7 @@ httpd-2.4.38.tar.bz2: OK
 After verification we can unpack the package.
 
 ```bash
-$> tar -xvjf httpd-2.4.38.tar.bz2
+$> tar -xvjf httpd-2.4.39.tar.bz2
 ```
 
 This results in approximately 38 MB.
@@ -133,8 +133,8 @@ This results in approximately 38 MB.
 We now enter the directory and configure the compiler with our entries and with information about our system. Unlike _apr_, our entries are very extensive.
 
 ```bash
-$> cd httpd-2.4.38
-$> ./configure --prefix=/opt/apache-2.4.38  --with-apr=/usr/local/apr/bin/apr-1-config \
+$> cd httpd-2.4.39
+$> ./configure --prefix=/opt/apache-2.4.39  --with-apr=/usr/local/apr/bin/apr-1-config \
    --with-apr-util=/usr/local/apr/bin/apu-1-config \
    --enable-mpms-shared=event \
    --enable-mods-shared=all \
@@ -168,13 +168,13 @@ $> sudo make install
 Installation may also take some time.
 
 ```bash
-$> sudo chown -R `whoami` /opt/apache-2.4.38
+$> sudo chown -R `whoami` /opt/apache-2.4.39
 ```
 
 And now for a trick: If you work professionally with Apache then you often have several different versions on the test server. Different versions, different patches, other modules, etc. result in tedious and long pathnames with version numbers and other descriptions. To ease things, I create a soft link from `/apache` to the current Apache web server when I switch to a new version. Care must be given that we and not the root user are the owners of the soft link (this is important in configuring the server).
 
 ```bash
-$> sudo ln -s /opt/apache-2.4.38 /apache
+$> sudo ln -s /opt/apache-2.4.39 /apache
 $> sudo chown `whoami` --no-dereference /apache
 $> cd /apache
 ```
@@ -225,11 +225,11 @@ $> sudo ./bin/httpd -V
 ```
 
 ```bash
-Server version: Apache/2.4.38 (Unix)
-Server built:   Mar  5 2019 10:35:49
+Server version: Apache/2.4.39 (Unix)
+Server built:   May 12 2019 13:32:29
 Server's Module Magic Number: 20120211:83
-Server loaded:  APR 1.6.5, APR-UTIL 1.6.1
-Compiled using: APR 1.6.5, APR-UTIL 1.6.1
+Server loaded:  APR 1.7.0, APR-UTIL 1.6.1
+Compiled using: APR 1.7.0, APR-UTIL 1.6.1
 Architecture:   64-bit
 Server MPM
 Server compiled with....
@@ -242,8 +242,8 @@ Server compiled with....
  -D APR_HAS_OTHER_CHILD
  -D AP_HAVE_RELIABLE_PIPED_LOGS
  -D DYNAMIC_MODULE_LIMIT=256
- -D HTTPD_ROOT="/opt/apache-2.4.38"
- -D SUEXEC_BIN="/opt/apache-2.4.38/bin/suexec"
+ -D HTTPD_ROOT="/opt/apache-2.4.39"
+ -D SUEXEC_BIN="/opt/apache-2.4.39/bin/suexec"
  -D DEFAULT_PIDLOG="logs/httpd.pid"
  -D DEFAULT_SCOREBOARD="logs/apache_runtime_status"
  -D DEFAULT_ERRORLOG="logs/error_log"
