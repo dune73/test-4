@@ -65,6 +65,7 @@ And once we are at it, let's install everything else we are going to need throug
 * libyajl-dev
 * nikto
 * ruby
+* ssl-cert
 * zlibc
 * zlib1g-dev
 
