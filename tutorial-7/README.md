@@ -246,7 +246,7 @@ SecAuditLogType               Concurrent
 SecAuditLog                   /apache/logs/modsec_audit.log
 SecAuditLogStorageDir         /apache/logs/audit/
 
-SecDefaultAction              "phase:1,pass,log,tag:'Local Lab Service'"
+SecDefaultAction              "phase:2,pass,log,tag:'Local Lab Service'"
 
 
 
