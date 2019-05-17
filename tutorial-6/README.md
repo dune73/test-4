@@ -557,7 +557,7 @@ SecRule &ARGS:sectoken  "@gt 1" \
     msg:'%{MATCHED_VAR_NAME} occurring more than once'"
 
 # Check individual parameters
-SecRule ARGS:username "!@rx ^[a-zA-Z0-9.@-]{1,64}$" \
+SecRule ARGS:username "!@rx ^[a-zA-Z0-9.@_-]{1,64}$" \
     "id:11500,phase:2,deny,log,tag:'Login Whitelist',\
     msg:'Invalid parameter format: %{MATCHED_VAR_NAME} (%{MATCHED_VAR})'"
 SecRule ARGS:sectoken "!@rx ^[a-zA-Z0-9]{32}$" \
