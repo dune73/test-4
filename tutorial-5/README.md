@@ -476,10 +476,14 @@ alias alcontenttype='cut -d\" -f8'
 
 All of the aliases begin with _al_. This stands for _ApacheLog_ or _AccessLog_. This is followed by the field name. The individual aliases are not sorted alphabetically. They instead follow the sequence of the fields in the format of the log file.
 
-This list with alias definitions is available in the file [.apache-modsec.alias](https://raw.githubusercontent.com/Apache-Labor/labor/master/bin/.apache-modsec.alias). They have been put together there with a few additional aliases that we will be defining in subsequent tutorials. If you often work with Apache and its log files, then it is advisable to place these alias definitions in the home directory and to load them when logging in. By using the following entry in the _.bashrc_ file or via another related mechanism.
+This list with alias definitions is available in the file [.apache-modsec.alias](https://raw.githubusercontent.com/Apache-Labor/labor/master/bin/.apache-modsec.alias). They have been put together there with a few additional aliases that we will be defining in subsequent tutorials. If you often work with Apache and its log files, then it is advisable to place these alias definitions in the home directory and to load them when logging in. By using the following entry in the _.bashrc_ file or via another related mechanism. (The entry also has a 2nd functionality: it adds the `bin` subfolder of your home folder to the PATH if it is not there already. This is often not the case and we are using this folder to place additional custom scripts that play with the apache-modsec file. So it's a good moment to prepare this immediately.)
 
 ```bash
+# Load apache / modsecurity aliases if file exists
 test -e ~/.apache-modsec.alias && . ~/.apache-modsec.alias
+
+# Add $HOME/bin to PATH
+[[ ":$PATH:" != *":$HOME/bin:"* ]] && PATH="$HOME/bin:${PATH}"
 ```
 
 Let’s use the new alias right away:
