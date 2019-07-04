@@ -344,6 +344,8 @@ First, the configuration of the reverse proxy:
 
 	    Options None
 
+	    ProxySet enablereuse=on
+
         </Proxy>
 
 	...
