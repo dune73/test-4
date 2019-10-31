@@ -104,7 +104,7 @@ In the fourth tutorial we operated the local Laboratory Service using the local 
         SSLCertificateKeyFile  /etc/ssl/private/ssl-cert-snakeoil.key
         SSLCertificateFile   /etc/ssl/certs/ssl-cert-snakeoil.pem
 
-        SSLProtocol             All -SSLv2 -SSLv3
+        SSLProtocol             All -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
         SSLCipherSuite          'AES256-SHA'
         SSLHonorCipherOrder     On
 

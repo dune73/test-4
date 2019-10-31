@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2019-10-31: Disabling TLSv1 and TLSv1.1
 * 2019-04-03: Raise initial anomaly threshold to 10,000.
 * 2019-03-21: Upgrade CRS 3.0.2 -> 3.1.0
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)

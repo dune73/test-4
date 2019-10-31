@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2019-10-31: Disabling TLSv1 and TLSv1.1
 * 2019-07-04: Adding ProxySet directive
 * 2018-04-13: Fixed bug with tshark command line call; update title format (markdown); rewordings (Simon Studer)
 * 2017-03-28: Publication

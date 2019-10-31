@@ -1,7 +1,7 @@
 Title: Capturing and Decrypting the Entire Traffic  
 Author: <a href="mailto:christian.folini@netnea.com">Christian Folini</a> (<a href="https://twitter.com/ChrFolini">@ChrFolini</a>)  
 Tutorial Number: 12  
-Last Update: 2018-07-04  
+Last Update: 2019-10-31  
 Release Date: 2013-03-28    
 Difficulty: Medium  
 Duration: 1h  
