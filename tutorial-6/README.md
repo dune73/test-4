@@ -442,7 +442,7 @@ This long list of numbers can be used to very well narrow down ModSecurity perfo
 
 ### Step 6: Writing simple blacklist rules
 
-ModSecurity is set up and configured using the configuration above. It can diligently log performance data, but only the rudimentary basis is present on the security side. In a subsequent tutorial we will be embedding the _OWASP ModSecurity Core Rules_, a comprehensive collection of rules. But it’s important for us to first learn how to write rules ourselves. Some rules have already been explained in the base configuration. It's just another small step from here.
+ModSecurity is set up and configured using the configuration above. It can diligently log performance data, but only the rudimentary basis is present on the security side. In a subsequent tutorial we will be embedding the _OWASP ModSecurity Core Rule Set_, a comprehensive collection of rules. But it’s important for us to first learn how to write rules ourselves. Some rules have already been explained in the base configuration. It's just another small step from here.
 
 Let’s take a simple case: We want to be sure that access to a specific URI on the server is blocked. We want to respond to such a request with _HTTP status 403_. We write the rule for this in the _ModSecurity rule_ section in the configuration and assign it ID 10000 (_service-specific before core-rules_).
 

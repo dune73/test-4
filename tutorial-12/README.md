@@ -16,7 +16,7 @@ In daily life, when operating a web or reverse proxy server errors occur that ca
 * An Apache web server with SSL/TLS support as in [Tutorial 4 (Configuring an SSL server)](https://www.netnea.com/cms/apache-tutorial-4-ssl-server-konfigurieren)
 * An Apache web server with extended access log as in [Tutorial 5 (Extending and analyzing the access log)](https://www.netnea.com/cms/apache-tutorial-5-zugriffslog-ausbauen/)
 * An Apache web server with ModSecurity as in [Tutorial 6 (Embedding ModSecurity)](https://www.netnea.com/cms/apache-tutorial-6-modsecurity-einbinden/)
-* An OWASP ModSecurity Core Rules installation as in [Tutorial 7 (Embedding ModSecurity Core Rules](https://www.netnea.com/cms/apache-tutorial-7-modsecurity-core-rules-einbinden/)
+* An OWASP ModSecurity Core Rule Set installation as in [Tutorial 7 (Embedding ModSecurity Core Rules](https://www.netnea.com/cms/apache-tutorial-7-modsecurity-core-rules-einbinden/)
 * A reverse proxy as in [Tutorial 9 (Setting up a reverse proxy)](https://www.netnea.com/cms/apache-tutorial-9-reverse-proxy-einrichten/)
 
 ### Step 1: Using ModSecurity to capture the entire traffic

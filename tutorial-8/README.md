@@ -2,7 +2,7 @@
 
 ### What are we doing?
 
-To successfully ward off attackers, we are reducing the number of *false positives* for a fresh installation of *OWASP ModSecurity Core Rules* and set the anomaly limits to a stricter level step by step.
+To successfully ward off attackers, we are reducing the number of *false positives* for a fresh installation of *OWASP ModSecurity Core Rule Set* and set the anomaly limits to a stricter level step by step.
 
 ### Why are we doing this?
 
@@ -366,7 +366,7 @@ _Click to get to the download of the large version_
 Let's start with a simple case: 920273. We could look at this in great detail and check out all the different parameters triggering this rule. Depending on the security level we want to provide for our application, this would be the right approach. But then this is an exercise, so we will keep it simple: Let's kick this rule out completely. We'll opt for a startup rule (to be placed after the CRS include).
 
 ```bash
-# === ModSec Core Rules: Config Time Exclusion Rules (no ids)
+# === ModSec Core Rule Set: Config Time Exclusion Rules (no ids)
 
 # ModSec Rule Exclusion: 920273 : Invalid character in request (outside of very strict set)
 SecRuleRemoveById 920273
@@ -437,7 +437,7 @@ The mode _combined_ instructs the script to write a rule that combines a path co
 Here is how the configuration looks when we enter this construct (line break introduced for display reasons):
 
 ```bash
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ModSec Rule Exclusion: 942130 : SQL Injection Attack: SQL Tautology Detected.
 SecRule REQUEST_URI "@beginsWith /drupal/index.php/contextual/render" \
@@ -461,7 +461,7 @@ So that's almost the same thing. We can thus take out the control action (the bi
 
 
 ```bash
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ModSec Rule Exclusion: 942130 : SQL Injection Attack: SQL Tautology Detected.
 # ModSec Rule Exclusion: 942431 : Restricted SQL Character Anomaly Detection (args): # of ...
@@ -947,7 +947,7 @@ And with this, we are done. We have successfully fought all the false positives 
 Time to look back and rearrange the configuration file with all the rule exclusions. I have regrouped them a bit, I added some comments and reassigned rule IDs. As outlined before, it is not obvious how to arrange the rules. Here, I ordered them by ID, but also included a block where I cover the search form separately.
 
 ```bash
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ModSec Rule Exclusion: 921180 : HTTP Parameter Pollution (multiple variables)
 SecRule REQUEST_URI "@beginsWith /drupal/index.php/contextual/render" \
@@ -988,12 +988,12 @@ SecRule REQUEST_URI "@beginsWith /drupal/index.php/search/node" "phase:2,nolog,p
    ctl:ruleRemoveTargetById=942410;ARGS:keys"
 
 
-# === ModSecurity Core Rules Inclusion
+# === ModSecurity Core Rule Set Inclusion
 
 Include    /apache/conf/crs/rules/*.conf
 
 
-# === ModSec Core Rules: Startup Time Rules Exclusions
+# === ModSec Core Rule Set: Startup Time Rules Exclusions
 
 # ModSec Rule Exclusion: 942450 : SQL Hex Encoding Identified
 SecRuleUpdateTargetById 942450 "!REQUEST_COOKIES"

@@ -19,7 +19,7 @@ For this reason, we will be using a little-known feature of `gnuplot`.
 * An Apache web server with SSL/TLS support as in [Tutorial 4 (Configuring an SSL server)](https://www.netnea.com/cms/apache-tutorial-4-ssl-server-konfigurieren)
 * An Apache web server with extended access log as in [Tutorial 5 (Extending and analyzing the access log)](https://www.netnea.com/cms/apache-tutorial-5-zugriffslog-ausbauen/)
 * An Apache web server with ModSecurity as in [Tutorial 6 (Embedding ModSecurity)](https://www.netnea.com/cms/apache-tutorial-6-modsecurity-einbinden/)
-* An Apache web server with Core Rules installation as in [Tutorial 7 (Embedding Core Rules)](http://www.netnea.com/cms/modsecurity-core-rules-einbinden/)
+* An Apache web server with a Core Rule Set installation as in [Tutorial 7 (Embedding Core Rules)](http://www.netnea.com/cms/modsecurity-core-rules-einbinden/)
 * The `gnuplot` package; e.g. as present in the `Ubuntu` distribution.
 
 ### Step 1: Graphically displaying time series in the shell

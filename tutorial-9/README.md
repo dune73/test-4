@@ -637,7 +637,7 @@ SecRule TX:/^MSC_/ "!@streq 0" \
   msg:'ModSecurity internal error flagged: %{MATCHED_VAR_NAME}'"
 
 
-# === ModSec Core Rules Base Configuration (ids: 900000-900999)
+# === ModSec Core Rule Set Base Configuration (ids: 900000-900999)
 
 Include    /apache/conf/crs/crs-setup.conf
 
@@ -649,17 +649,17 @@ SecAction "id:900000,phase:1,pass,nolog,\
   setvar:tx.paranoia_level=1"
 
 
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ...
 
 
-# === ModSecurity Core Rules Inclusion
+# === ModSecurity Core Rule Set Inclusion
 
 Include    /apache/conf/crs/rules/*.conf
 
 
-# === ModSec Core Rules: Startup Time Rules Exclusions
+# === ModSec Core Rule Set: Startup Time Rules Exclusions
 
 # ...
 

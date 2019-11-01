@@ -60,7 +60,7 @@ In Tutorial 6, in which we embedded ModSecurity itself, we marked out a section 
 The rule exclusions are directives and rules used for managing the false alarms described above. Some false alarms must be prevented before the corresponding Core Rule is loaded. Some false alarms can only be intercepted following the definition of the core rule itself. But one thing at a time. Here is the new block of configuration which we will insert into the base configuration we assembled when we enabled ModSecurity:
 
 ```bash
-# === ModSec Core Rules Base Configuration (ids: 900000-900999)
+# === ModSec Core Rule Set Base Configuration (ids: 900000-900999)
 
 Include    /apache/conf/crs/crs-setup.conf
 
@@ -72,17 +72,17 @@ SecAction "id:900000,phase:1,pass,nolog,\
   setvar:tx.paranoia_level=1"
 
 
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ...
 
 
-# === ModSecurity Core Rules Inclusion
+# === ModSecurity Core Rule Set Inclusion
 
 Include    /apache/conf/crs/rules/*.conf
 
 
-# === ModSec Core Rules: Startup Time Rules Exclusions
+# === ModSec Core Rule Set: Startup Time Rules Exclusions
 
 # ...
 
@@ -304,7 +304,7 @@ SecRule TX:/^MSC_/ "!@streq 0" \
   msg:'ModSecurity internal error flagged: %{MATCHED_VAR_NAME}'"
 
 
-# === ModSec Core Rules Base Configuration (ids: 900000-900999)
+# === ModSec Core Rule Set Base Configuration (ids: 900000-900999)
 
 Include    /apache/conf/crs/crs-setup.conf
 
@@ -316,17 +316,17 @@ SecAction "id:900000,phase:1,pass,nolog,\
   setvar:tx.paranoia_level=1"
 
 
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ...
 
 
-# === ModSecurity Core Rules Inclusion
+# === ModSecurity Core Rule Set Inclusion
 
 Include    /apache/conf/crs/rules/*.conf
 
 
-# === ModSec Core Rules: Config Time Exclusion Rules (no ids)
+# === ModSec Core Rule Set: Config Time Exclusion Rules (no ids)
 
 # ...
 
@@ -728,7 +728,7 @@ $> tail /apache/logs/error.log | melidmsg
 So the rule has been triggered as desired. Let us now exclude the rule. We have multiple options and we start with the simplest one: We exclude the rule at startup time for Apache. This means it removes the rule from the set of loaded rules and no processor cycles will be spent on the rule once the server has started. Of course, we can only remove things which have been loaded before. So this directive has to be placed after the CRS include statement. In the config recipe earlier in this tutorial, we reserved some space for these sorts of exclusion rules. We fill in our exclusion directive in this location:
 
 ```bash
-# === ModSec Core Rules: Config Time Exclusion Rules (no ids)
+# === ModSec Core Rule Set: Config Time Exclusion Rules (no ids)
 
 # ModSec Exclusion Rule: 920300 Request Missing an Accept Header
 SecRuleRemoveById 920300
@@ -748,7 +748,7 @@ Technically, there is an additional directive, `SecRuleRemoveByMsg`. However, th
 So these are startup rule exclusions. Excluding a rule in this manner is simple and readable, but it is also a drastic step which we will not use in a production setup very often. Because, if our issues with the rule 920300 are limited to a single legitimate agent checking the availability of our service by requesting the index page, we can limit the exclusion to this individual request. This is no longer a startup time rule exclusion, but a runtime exclusion which is being applied on certain conditions. Runtime exclusions leverage the *SecRule* directive combined with a special action executing the rule exclusion. This depends on the SecRule statement running before the rule in question is applied. That's why runtime rule exclusions have to be placed before the Core Rule Set include statement, where we also reserved a space for this type of exclusion rule:
 
 ```bash
-# === ModSec Core Rules: Runtime Exclusion Rules (ids: 10000-49999)
+# === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
 
 # ModSec Exclusion Rule: 920300 Request Missing an Accept Header
 SecRule REQUEST_FILENAME "@streq /index.html" \
