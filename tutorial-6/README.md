@@ -183,12 +183,12 @@ SecDefaultAction              "phase:2,pass,log,tag:'Local Lab Service'"
 
 
 # == ModSec Rule ID Namespace Definition
-# Service-specific before Core-Rules:    10000 -  49999
-# Service-specific after Core-Rules:     50000 -  79999
+# Service-specific before Core Rule Set: 10000 -  49999
+# Service-specific after Core Rule Set:  50000 -  79999
 # Locally shared rules:                  80000 -  99999
 #  - Performance:                        90000 -  90199
 # Recommended ModSec Rules (few):       200000 - 200010
-# OWASP Core-Rules:                     900000 - 999999
+# OWASP Core Rule Set:                  900000 - 999999
 
 
 # === ModSec timestamps at the start of each phase (ids: 90000 - 90009)
