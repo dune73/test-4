@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2019-11-04: Added env=HTTPS condition to STS header config
 * 2019-11-01: Consistent naming of CRS in config comments
 * 2019-10-31: Disabling TLSv1 and TLSv1.1
 * 2019-03-31: Update ModSecurity (2.9.3), update method check in whitelist to return status 405, extended username format to 64 bytes

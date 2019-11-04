@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2019-11-04: Added env=HTTPS condition to STS header config
 * 2019-10-31: Disabling TLSv1 and TLSv1.1
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-12-17: Fixed several links

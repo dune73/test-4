@@ -109,7 +109,8 @@ DocumentRoot            /apache/htdocs
 <VirtualHost 127.0.0.1:443>
 
         SSLEngine On
-        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 
         <Directory /apache/htdocs>
 
@@ -135,7 +136,8 @@ After the _cipher suite_ we follow with the _SSLHonorCipherOrder_ directive. It 
 
 Encryption works with random numbers. The random number generator should be properly started and used, which is the purpose of the _SSLRandomSeed_ directive. This is another place where performance and security have to be considered. When starting the server we access the operating system’s random numbers in _/dev/urandom_. While operating the server, we use Apache’s own source for random numbers (builtin), seeded from the server’s traffic for the _SSL handshake_. The _/dev/urandom_ source is the best source for random numbers in almost all situations: it is a quick source and also one that guarantees a certain amount of entropy. The qualitatively even better source, _/dev/random_, could in adverse circumstances block our server when starting, because not enough entropy data is present. This is why _/dev/urandom_ is generally preferred outside of very rare and special situations.
 
-We have also introduced a second _virtual host_. It is very similar to the _virtual host_ for port 80. But the port number is _443_ and we are enabling the _SSL engine_, which encrypts traffic for us and first enables the configuration defined above. Additionally, we use the Header-Module loaded above in order to set the _Strict-Transport-Security_-header (short _STS_-Header). This HTTP header is part of the response and tells the client to use encryption for a duration of one year (this equals 31536000 seconds) when connected to our server. This happens regardless of the presence of the `https` string in links. So any attempt to lure the browser to talk to our server in cleartext will be rewritten to `https`. The flag _includeSubDomains_ means, that all subdomains below our hostname are included in this instruction. Be careful here: Working with the domain `christian-folini.ch`, we will be calling the server with this naked hostname without the leading `www`. Setting the flag _includeSubDomains_ on such a request effectively means, that every hostname within the `christian-folini.ch` domain will only be addressed via `https` in the future. If you continue to run other services on port 80 only, this is dangerous. The flag _includeSubDomains_ should only be used if you are really sure all subdomains of your domain run on `https` and this policy is here to stay.
+We have also introduced a second _virtual host_. It is very similar to the _virtual host_ for port 80. But the port number is _443_ and we are enabling the _SSL engine_, which encrypts traffic for us and first enables the configuration defined above. Additionally, we use the Header-Module loaded above in order to set the _Strict-Transport-Security_-header (short _STS_-Header). This HTTP header is part of the response and tells the client to use encryption for a duration of one year (this equals 31536000 seconds) when connected to our server. This happens regardless of the presence of the `https` string in links. So any attempt to lure the browser to talk to our server in cleartext will be rewritten to `https`. The flag _includeSubDomains_ means, that all subdomains below our hostname are included in this instruction. Be careful here: Working with the domain `christian-folini.ch`, we will be calling the server with this naked hostname without the leading `www`. Setting the flag _includeSubDomains_ on such a request effectively means, that every hostname within the `christian-folini.ch` domain will only be addressed via `https` in the future. If you continue to run other services on port 80 only, this is dangerous. The flag _includeSubDomains_ should only be used if you are really sure all subdomains of your domain run on `https` and this policy is here to stay. Now there is also a condition at the end, that limits the header to encrypted connections. In fact it is possible to talk in cleartext to the encrypted port here. The server will respond with an error message and the condition will make sure this reponse does not contain said header.
+
 
 The _STS_-header is the most prominent from a group of newer security related headers. Various browsers implement different headers, so it is not very easy to maintain an overview, but the _STS_-header should never be omitted. If we look at the _Header_ directive in more detail, we see the additional flag _always_. There are cases where the module is not springing into action (for example when we return an error as a response) without this flag. With _always_, we make sure the header is always sent.
 
@@ -648,7 +650,7 @@ SSLSessionTickets       On
         ServerName              www.christian-folini.ch
 
         SSLEngine On
-        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 
         ...
 ```
