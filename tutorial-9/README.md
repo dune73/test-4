@@ -263,7 +263,7 @@ Finally, we still need a module to help us manage shared segments of memory. The
 We are now ready to configure the load balancer. We can set it up via the RewriteRule. This modification also affects the proxy stanza, where the balancer just defined must be referenced and resolved:
 
 ```bash
-    RewriteRule         ^/service1/(.*)       balancer://backend/service/$1   [proxy,last]
+    RewriteRule         ^/service1/(.*)       balancer://backend/service1/$1   [proxy,last]
     ProxyPassReverse    /                     balancer://backend/
 
     <Proxy balancer://backend>
