@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2020-01-15: Replaced 'cardinality' with uniqueness
 * 2019-11-04: Added env=HTTPS condition to STS header config
 * 2019-11-01: Consistent naming of CRS in config comments
 * 2019-10-31: Disabling TLSv1 and TLSv1.1

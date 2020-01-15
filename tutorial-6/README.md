@@ -545,7 +545,7 @@ SecRule ARGS_NAMES "!@rx ^(username|password|sectoken)$" \
     "id:11300,phase:2,deny,log,tag:'Login Whitelist',\
     msg:'Unknown parameter: %{MATCHED_VAR_NAME}'"
 
-# Validate each parameter's cardinality
+# Validate each parameter's uniqueness
 SecRule &ARGS:username  "@gt 1" \
     "id:11400,phase:2,deny,log,tag:'Login Whitelist',\
     msg:'%{MATCHED_VAR_NAME} occurring more than once'"
@@ -588,10 +588,10 @@ But how is all this checked? After all, it's a complicated set of paths spread o
 
 Now it is time to look at parameters. There are query string parameters and POST parameters. We could look at them separately, but it is more convenient to treat them as one group. The POST parameters will only be available in the 2nd phase, so all the rules from here to the end of our whitelist will work in phase 2.
 
-There are three things to check for any parameter: the name (do we know the parameter?), the cardinality (is it submitted more than once? I will explain this shortly) and the format (does the parameter follow our predefined pattern?).
+There are three things to check for any parameter: the name (do we know the parameter?), the uniqueness (is it submitted more than once? I will explain this shortly) and the format (does the parameter follow our predefined pattern?).
 We perform the checks one after the other starting with the name in rule ID 11300. Here we check for a predefined list of parameter names. We expect three individual parameters: _username_, _password_ and a _sectoken_. Anything outside this list is forbidden. Unlike the check for the HTTP method, we use a regular expression here even if we could make this rule more readable by using the parallel matching operator `@pm`. The reason being, parallel matching treats uppercase and lowercase characters the same. So you could submit a parameter named _userName_, it would pass the name check and the subsequent rules might overlook it based on the odd capital _N_. So let's stick to the regular expression here.
 
-So what's the matter with this cardinality check. Let me explain it as follows: Suppose an attacker submits a parameter twice in the same request. What will happen in the application? Will the application use the first occurrence? The second occurrence? Both? Or will it concatenate? Honestly, we do not know. That's why we need to stop this: We count all the parameter and if any one of them is appearing more than once, we stop the request. There is one rule for each parameter starting with rule 11400. If you examine the rules carefully, you see the _&_ character in front of the _ARGS_. This means that we do not look at the parameter itself, but we want to count its occurrence. The operator `@gt` will then simply match any sum bigger than 1.
+So what's the matter with this uniqueness check. Let me explain it as follows: Suppose an attacker submits a parameter twice in the same request. What will happen in the application? Will the application use the first occurrence? The second occurrence? Both? Or will it concatenate? Honestly, we do not know. That's why we need to stop this: We count all the parameter and if any one of them is appearing more than once, we stop the request. There is one rule for each parameter starting with rule 11400. If you examine the rules carefully, you see the _&_ character in front of the _ARGS_. This means that we do not look at the parameter itself, but we want to count its occurrence. The operator `@gt` will then simply match any sum bigger than 1.
 
 We are slowly coming to an end now. But before we do, we need to look at the individual parameters: Do they match a predefined pattern? In the case of the username (rule ID 11500) and the sectoken (rule ID 11501), the case is quite clear: We know how a username is supposed to look like on our site and for the machine generated sectoken it is even easier. So we use regular expressions to check this format.
 
