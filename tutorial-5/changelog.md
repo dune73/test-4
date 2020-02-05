@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2020-02-04: Remark about making percent.awk executable
 * 2019-11-04: Replaced ~ with $HOME in .bashrc recipe
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-12-17: Fixed several links, replaced Average with Mean
