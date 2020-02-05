@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2020-02-05: Doctoring the format of the example access logs to work with the extended-2019 format
 * 2019-04-03: Raise initial anomaly threshold to 10,000
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-09-25: Update apr (1.6.2), apr-util (1.6.0), Apache (2.4.27) and ModSecurity (2.9.2)
