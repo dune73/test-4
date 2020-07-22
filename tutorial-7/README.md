@@ -24,31 +24,32 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 
 ```
 $> cd /apache/conf
-$> wget https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.1.0.tar.gz
-$> tar -xvzf v3.1.0.tar.gz
-owasp-modsecurity-crs-3.1.0/
-owasp-modsecurity-crs-3.1.0/.github/
-owasp-modsecurity-crs-3.1.0/.github/ISSUE_TEMPLATE.md
-owasp-modsecurity-crs-3.1.0/.gitignore
-owasp-modsecurity-crs-3.1.0/.gitmodules
-owasp-modsecurity-crs-3.1.0/.travis.yml
-owasp-modsecurity-crs-3.1.0/CHANGES
-owasp-modsecurity-crs-3.1.0/IDNUMBERING
-owasp-modsecurity-crs-3.1.0/INSTALL
-owasp-modsecurity-crs-3.1.0/KNOWN_BUGS
-owasp-modsecurity-crs-3.1.0/LICENSE
-owasp-modsecurity-crs-3.1.0/README.md
-owasp-modsecurity-crs-3.1.0/crs-setup.conf.example
-owasp-modsecurity-crs-3.1.0/documentation/
-owasp-modsecurity-crs-3.1.0/documentation/OWASP-CRS-Documentation/
-owasp-modsecurity-crs-3.1.0/documentation/README
+$> wget https://github.com/coreruleset/coreruleset/archive/v3.3.0.tar.gz
+$> tar -xvzf v3.3.0.tar.gz
+coreruleset-3.3.0
+coreruleset-3.3.0/
+coreruleset-3.3.0/.github/
+coreruleset-3.3.0/.github/ISSUE_TEMPLATE.md
+coreruleset-3.3.0/.gitignore
+coreruleset-3.3.0/.gitmodules
+coreruleset-3.3.0/.travis.yml
+coreruleset-3.3.0/CHANGES
+coreruleset-3.3.0/IDNUMBERING
+coreruleset-3.3.0/INSTALL
+coreruleset-3.3.0/KNOWN_BUGS
+coreruleset-3.3.0/LICENSE
+coreruleset-3.3.0/README.md
+coreruleset-3.3.0/crs-setup.conf.example
+coreruleset-3.3.0/documentation/
+coreruleset-3.3.0/documentation/OWASP-CRS-Documentation/
+coreruleset-3.3.0/documentation/README
 ...
-$> sudo ln -s owasp-modsecurity-crs-3.1.0 /apache/conf/crs
+$> sudo ln -s coreruleset-3.3.0 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
-$> rm v3.1.0.tar.gz
+$> rm v3.3.0.tar.gz
 ```
 
-This unpacks the base part of the Core Rule Set in the directory `/apache/conf/owasp-modsecurity-crs-3.1.0`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
+This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-3.3.0`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
 
 The setup file allows us to tweak many different settings. It is worth a look - if only to see what is included. However, we are OK with the default settings and will not touch the file: We just make sure it is available under the new filename `crs-setup.conf`. Then we can continue to update the configuration to include the rules files.
 

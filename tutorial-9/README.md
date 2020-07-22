@@ -435,7 +435,7 @@ We are differentiating between two backends and can perform the distribution any
 
 The reverse proxy server shields the application server from direct client access. However, this also means that the application server is no longer able to see certain types of information about the client and its connection to the reverse proxy. To compensate for this loss, the Proxy module sets three HTTP request header lines that describe the reverse proxy:
 
-* X-Forwarded-For : The IP address of the reverse proxy
+* X-Forwarded-For : The IP address of the client
 * X-Forwarded-Host : The original HTTP host header in the client request
 * X-Forwarded-Server : The name of the reverse proxy server
 

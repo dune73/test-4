@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2020-07-22: Typo
 * 2020-02-04: Remark about making percent.awk executable
 * 2019-11-04: Replaced ~ with $HOME in .bashrc recipe
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)

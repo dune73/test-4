@@ -335,7 +335,7 @@ This should result in 100 GET requests:
 We can also compare GET and POST with one another. We do this as follows:
 
 ```bash
-$> egrep  -o '"(GET|POST)' logs/access.log | cut -b2- | sort | uniq -c
+$> egrep -o '"(GET|POST)' logs/access.log | cut -b2- | sort | uniq -c
 ```
 
 Here, we filter out the GET and the POST requests using the method that follows a quote mark. We then cut out the quote mark, sort and count grouped:
@@ -422,7 +422,7 @@ TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 744 10032 -% 3022 1094 0 245 0-0-0-0 0-0-0-0
 Let’s have a look at the distribution of _GET_ and _POST_ requests here:
 
 ```bash
-$> cat tutorial-5-example-access.log  | egrep  -o '"(GET|POST)'  | cut -b2- | sort | uniq -c
+$> cat tutorial-5-example-access.log  | egrep -o '"(GET|POST)'  | cut -b2- | sort | uniq -c
    9466 GET
     115 POST
 ```

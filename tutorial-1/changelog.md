@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2020-06-28: Updated Apache to version 2.4.43
 * 2019-12-02: Updated Apache to version 2.4.41
 * 2019-05-17: Added ssl-cert to the list of paackages to be installed
 * 2019-05-16: Updated apr (1.7.0) and Apache (2.4.39), typo
