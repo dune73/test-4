@@ -90,7 +90,6 @@ Once this is successful, we'll do the same with _apr-util_.
 
 ```bash
 $> cd /usr/src/apache
-
 $> wget https://www-eu.apache.org/dist/apr/apr-util-1.6.1.tar.bz2
 $> wget https://www.apache.org/dist/apr/apr-util-1.6.1.tar.bz2.sha256
 $> sha256sum --check apr-util-1.6.1.tar.bz2.sha256
