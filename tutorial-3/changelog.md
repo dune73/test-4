@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2020-10-09: Updated Apache (2.4.46)
 * 2020-06-28: Updated Apache (2.4.43)
 * 2020-02-04: Updated Apache (2.4.41)
 * 2019-05-16: Updated Apache (2.4.39)
