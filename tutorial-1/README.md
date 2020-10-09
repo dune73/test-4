@@ -253,7 +253,7 @@ Server compiled with....
  -D SERVER_CONFIG_FILE="conf/httpd.conf"
 ```
 
-Because we specified the version when we compiled, `apr` is mentioned and the `event` _MPM_ appears further below. Incidentally, at the very bottom we see a reference to the web server’s default configuration file and a bit above this the path we can use to find the default _error_log_.
+Because we specified the version when we compiled, `apr` is mentioned and the `event` _MPM_ appears further below. Incidentally, at the very bottom we see a reference to the web server’s default configuration file and a bit above this the path we can use to find the default _error-log_.
 
 You can however get even more information from the system and inquire about the modules compiled firmly into the server.
 
