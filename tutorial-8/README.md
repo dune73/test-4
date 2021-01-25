@@ -807,6 +807,11 @@ OK, so there seems to be a password `/bin/bash`. That is probably not the smarte
 REQUEST-901-INITIALIZATION.conf
 REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
 REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
+REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf
+REQUEST-903.9004-DOKUWIKI-EXCLUSION-RULES.conf
+REQUEST-903.9005-CPANEL-EXCLUSION-RULES.conf
+REQUEST-903.9006-XENFORO-EXCLUSION-RULES.conf
+REQUEST-903.9007-PHPBB-EXCLUSION-RULES.conf
 REQUEST-905-COMMON-EXCEPTIONS.conf
 REQUEST-910-IP-REPUTATION.conf
 REQUEST-911-METHOD-ENFORCEMENT.conf
@@ -821,6 +826,7 @@ REQUEST-933-APPLICATION-ATTACK-PHP.conf
 REQUEST-941-APPLICATION-ATTACK-XSS.conf
 REQUEST-942-APPLICATION-ATTACK-SQLI.conf
 REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
+REQUEST-944-APPLICATION-ATTACK-JAVA.conf
 REQUEST-949-BLOCKING-EVALUATION.conf
 RESPONSE-950-DATA-LEAKAGES.conf
 RESPONSE-951-DATA-LEAKAGES-SQL.conf
@@ -831,12 +837,12 @@ RESPONSE-959-BLOCKING-EVALUATION.conf
 RESPONSE-980-CORRELATION.conf
 ```
 
-We do not want to ignore the protocol attacks, but all the application stuff should be off limits. So let's kick the rules from `REQUEST-930-APPLICATION-ATTACK-LFI.conf` to `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf`. This is effectively the rule range from 930,000 to 943,999. We can exclude the two parameters for all these rules with the following startup time directives:
+We do not want to ignore the protocol attacks, but all the application stuff should be off limits. So let's kick the rules from `REQUEST-930-APPLICATION-ATTACK-LFI.conf` to `REQUEST-944-APPLICATION-ATTACK-JAVA.conf`. This is effectively the rule range from 930,000 to 944,999. We can exclude the two parameters for all these rules with the following startup time directives:
 
 ```bash
-# ModSec Rule Exclusion: 930000 - 943999 : All application rules for password parameters
-SecRuleUpdateTargetById 930000-943999 "!ARGS:account[pass][pass1]"
-SecRuleUpdateTargetById 930000-943999 "!ARGS:account[pass][pass2]"
+# ModSec Rule Exclusion: 930000 - 944999 : All application rules for password parameters
+SecRuleUpdateTargetById 930000-944999 "!ARGS:account[pass][pass1]"
+SecRuleUpdateTargetById 930000-944999 "!ARGS:account[pass][pass2]"
 ```
 
 We are left with another instance of 921180, plus the 942431 which we have seen before too. Here is what the script proposes:
@@ -937,7 +943,7 @@ $> grep -F -f ids tutorial-8-example-error-round-4.log  | grep 932160 | modsec-r
 So yes, it is the password field again. I think it is best to execute the same process we performed with the other occurrences of the password. That was probably the registration, while this time it is the login form.
 
 ```bash
-SecRuleUpdateTargetById 930000-943999 "!ARGS:pass"
+SecRuleUpdateTargetById 930000-944999 "!ARGS:pass"
 ```
 
 And with this, we are done. We have successfully fought all the false positives of a content management system with peculiar parameter formats and a ModSecurity rule set pushed to insanely paranoid levels. 
@@ -1005,10 +1011,10 @@ SecRuleUpdateTargetById 942450 "!REQUEST_COOKIES_NAMES"
 SecRuleRemoveById 920273
 SecRuleRemoveById 942432
 
-# ModSec Rule Exclusion: 930000 - 943999 : All application rules for password parameters
-SecRuleUpdateTargetById 930000-943999 "!ARGS:account[pass][pass1]"
-SecRuleUpdateTargetById 930000-943999 "!ARGS:account[pass][pass2]"
-SecRuleUpdateTargetById 930000-943999 "!ARGS:pass"
+# ModSec Rule Exclusion: 930000 - 944999 : All application rules for password parameters
+SecRuleUpdateTargetById 930000-944999 "!ARGS:account[pass][pass1]"
+SecRuleUpdateTargetById 930000-944999 "!ARGS:account[pass][pass2]"
+SecRuleUpdateTargetById 930000-944999 "!ARGS:pass"
 
 ```
 

@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2021-01-25: Update 943999 -> 944999, added missing rule exclusion pkgs
 * 2020-02-05: Doctoring the format of the example access logs to work with the extended-2019 format
 * 2019-04-03: Raise initial anomaly threshold to 10,000
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
