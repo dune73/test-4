@@ -106,7 +106,7 @@ The second rule, id `900000`, defines the _Paranoia Level_ to 1. The Core Rules 
 The center of the previous config snippet follows the include statement, which loads all files with suffix `.conf` from the rules sub folder in the CRS directory. This is where all the rules are being loaded. Let's take a look at them:
 
 ```bash
-$> ls -1 conf/crs/rules/*.conf
+$> ls -1 crs/rules/*.conf
 conf/crs/rules/REQUEST-901-INITIALIZATION.conf
 conf/crs/rules/REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
 conf/crs/rules/REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
@@ -716,11 +716,12 @@ Excluding a rule completely takes very little effort, but it is, of course, pote
 Especially at higher paranoia levels, there are rules that just fail to work with some applications and trigger false alarms in all sorts of situations. So there is a use for disabling a rule completely. One notable example is rule ID `920300`: *Request Missing an Accept Header*. There are just so many user agents that submit requests without an accept header, there is a rule dedicated to the problem. Let's raise the paranoia level to 2 by setting the `tx.paranoia_level` variable to 2 in rule ID 900,000.  Then we will send a request without an `Accept` header to trigger an alert as follows (I recommend returning the paranoia level to 1 again afterwards):
 
 ```bash
-$> curl -v -H "Accept: " http://localhost/index.html
+$> curl -v -H "Accept;" http://localhost/index.html
 ...
 > GET /index.html HTTP/1.1
 > User-Agent: curl/7.47.0
 > Host: localhost
+> Accept:
 ...
 $> tail /apache/logs/error.log | melidmsg
 920300 Request Missing an Accept Header
@@ -729,7 +730,7 @@ $> tail /apache/logs/error.log | melidmsg
 So the rule has been triggered as desired. Let us now exclude the rule. We have multiple options and we start with the simplest one: We exclude the rule at startup time for Apache. This means it removes the rule from the set of loaded rules and no processor cycles will be spent on the rule once the server has started. Of course, we can only remove things which have been loaded before. So this directive has to be placed after the CRS include statement. In the config recipe earlier in this tutorial, we reserved some space for these sorts of exclusion rules. We fill in our exclusion directive in this location:
 
 ```bash
-# === ModSec Core Rule Set: Config Time Exclusion Rules (no ids)
+# === ModSec Core Rule Set: Startup Time Rules Exclusions (no ids)
 
 # ModSec Exclusion Rule: 920300 Request Missing an Accept Header
 SecRuleRemoveById 920300
@@ -880,7 +881,7 @@ I think the tuning concept and the theory are now quite clear. In the next tutor
 
 ### Step 10 (Goodie): Summary of the ways of combating false positives
 
-It is possibly best to summarize the tuning directives in a graphic. So here is a cheatsheet for your use!
+It is possibly best to summarize the four tuning methods in a graphic. So here is a cheatsheet for your use!
 
 <a href="https://www.netnea.com/cms/rule-exclusion-cheatsheet-download/"><img src="https://www.netnea.com/files/tutorial-7-rule-exclusion-cheatsheet_small.png" alt="Rule Exclusion CheatSheet" width="476" height="673" /></a>
 

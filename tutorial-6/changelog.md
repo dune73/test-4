@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2021-01-25: Replaced 'normalizePath' with 'normalizePathWin' in rule 10,000
 * 2020-01-15: Replaced 'cardinality' with uniqueness
 * 2019-11-04: Added env=HTTPS condition to STS header config
 * 2019-11-01: Consistent naming of CRS in config comments

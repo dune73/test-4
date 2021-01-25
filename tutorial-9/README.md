@@ -29,7 +29,7 @@ The purpose of a reverse proxy is to shield an application server from direct in
 In principle, any HTTP application can be used for such an installation and we could very well use the application server from the third tutorial. However, it seems appropriate for me to demonstrate a very simple approach. We’ll be using the tool `socat` short for SOcket CAt.
 
 ```bash
-$> socat -vv TCP-LISTEN:8000,bind=127.0.0.1,crlf,reuseaddr,fork SYSTEM:"echo HTTP/1.0 200;\
+$> socat -v -v TCP-LISTEN:8000,bind=127.0.0.1,crlf,reuseaddr,fork SYSTEM:"echo HTTP/1.0 200;\
 echo Content-Type\: text/plain; echo; echo 'Server response, port 8000.'"
 ``` 
  Using this complex command we instruct socat to bind a listener to local port 8000 and to use several echoes to return an HTTP response when a connection occurs. The additional parameters make sure that the listener stays permanently open and error output works.
@@ -83,9 +83,9 @@ ProxyPassReverse   /service1    http://localhost:8000/service1
 
 <Proxy http://localhost:8000/service1>
 
-	Require all granted
+      Require all granted
 
-	Options None
+      Options None
 
 </Proxy>
 ```
@@ -144,7 +144,7 @@ LoadModule              rewrite_module          modules/mod_rewrite.so
 RewriteEngine           On
 RewriteOptions          InheritDownBefore
 
-RewriteRule   		^/$	%{REQUEST_SCHEME}://%{HTTP_HOST}/index.html  [redirect,last]
+RewriteRule             ^/$     %{REQUEST_SCHEME}://%{HTTP_HOST}/index.html  [redirect,last]
 ```
 
 We initialize the engine on the server level. We then instruct the engine to pass on our rules to other rewrite engines. Specifically, so that our rules are performed before the rules further down. Then comes the actual rule. We tell the server to instruct the client to send a new request to `/index.html` for a request without a path or a request for "/" respectively. This is a redirect. What’s important is for the redirect to indicate the schema of the request, http or https as well as the host name. Relatives paths won’t work. But because we are outside the VirtualHost, we don’t see the type. And we don’t want to hard code the host name, but prefer to take the host names from client requests. Both of these values are available as variables as you can see in the example above.
@@ -190,11 +190,11 @@ You could now ask yourself why we are opening a rewrite engine in the server con
 ```bash
 <VirtualHost 127.0.0.1:80>
       
-	RewriteEngine		On
+      RewriteEngine   On
 
-	RewriteRule		^/(.*)$	https://%{HTTP_HOST}/$1	[redirect,last]
+      RewriteRule     ^/(.*)$   https://%{HTTP_HOST}/$1  [redirect,last]
 
-	...
+      ...
 
 </VirtualHost>
 ```
@@ -213,21 +213,22 @@ Let's use ModRewrite to configure a reverse proxy. We do this as follows:
 
     ...
 
-    RewriteEngine	On
+    RewriteEngine     On
 
-    RewriteRule		^/service1/(.*)		http://localhost:8000/service1/$1 [proxy,last]
-    ProxyPassReverse	/	              	http://localhost:8000/
+    RewriteRule       ^/service1/(.*)   http://localhost:8000/service1/$1 [proxy,last]
+    ProxyPassReverse  /                 http://localhost:8000/
 
     <Proxy http://localhost:8000/service1>
 
-	Require all granted
+        Require all granted
 
-	Options None
+        Options None
 
-	ProxySet enableruse=on
+        ProxySet enablereuse=on
 
     </Proxy>
 
+</VirtualHost>
 ```
 
 The instruction follows a pattern similar to the variation using ProxyPass. Here however, the last part of the path has to be explicitly intercepted by using a bracket and again indicated by "$1" as we saw above. Instead of the suggested redirect flag the keyword proxy is used here. ProxyPassReverse and the proxy container remain almost identical to the setup using ProxyPass. There is an additional instruction however: ProxySet. It is vital for performance reasons and a somewhat odd behavior of the Apache webserver: When we define proxying via ProxyPass, Apache will implictly set up a resource pool for the backend connection. This resource pool allows for HTTP keep-alive on the backend connection. With the RewriteRule proxy construct, this resource pool is not created automatically. In fact, it is only prepared when we issue a ProxySet statement. The exact nature of the statement does not matter. In fact, enablereuse=on is the default value, but it does not come into play until the resource pool is set up and that only happens with the ProxySet. So we use enablereuse=on as a dummy and activate HTTP keep-alive that way.
@@ -274,7 +275,7 @@ We are now ready to configure the load balancer. We can set it up via the Rewrit
 
         Options None
 
-	ProxySet enableruse=on
+        ProxySet enablereuse=on
 
     </Proxy>
 ```
@@ -367,8 +368,8 @@ This list makes clear that RewriteMaps are extremely flexible and can be used in
 First, we calculate a hash value from the client’s IP address. This means that we are converting the IP address into a seemingly random hexadecimal string using ModSecurity:
 
 ```bash
-SecRule REMOTE_ADDR	"^(.)" \
-	"phase:1,id:50001,capture,nolog,t:sha1,t:hexEncode,setenv:IPHashChar=%{TX.1}"
+SecRule REMOTE_ADDR   "^(.)" \
+   "phase:1,id:50001,capture,nolog,t:sha1,t:hexEncode,setenv:IPHashChar=%{TX.1}"
 ```
 
 We have used hexEncode to convert the binary hash value we generated using sha1 into readable characters. We then apply the regular expression to this value. "^(.)" means that we want to find a match on the first character. Of the ModSecurity flags that follow `capture` is of interest. It indicates that we want to capture the value in the parenthesis in the previous regex condition. We then put it into the IPHashChar environment variable.
@@ -388,7 +389,7 @@ RewriteRule     ^/service1/(.*) \
 
     Options None
 
-    ProxySet enableruse=on
+    ProxySet enablereuse=on
 
 </Proxy>
 
@@ -398,7 +399,7 @@ RewriteRule     ^/service1/(.*) \
 
     Options None
 
-    ProxySet enableruse=on
+    ProxySet enablereuse=on
 
 </Proxy>
 ```
@@ -444,10 +445,10 @@ If multiple reverse proxies are staggered behind one another then the additional
 A reverse proxy is frequently used to perform authentication. Although we haven’t set that up yet, it is still wise to add this value to an expanding basic configuration. If authentication is not defined, this value simply remains empty. And finally, we want to tell the backend system about the type of encryption the client and reverse proxy agreed upon. The entire block looks like this:
 
 ```bash
-RequestHeader set "X-RP-UNIQUE-ID" 	"%{UNIQUE_ID}e"
-RequestHeader set "X-RP-REMOTE-USER" 	"%{REMOTE_USER}e"
-RequestHeader set "X-RP-SSL-PROTOCOL" 	"%{SSL_PROTOCOL}s"
-RequestHeader set "X-RP-SSL-CIPHER" 	"%{SSL_CIPHER}s"
+RequestHeader set "X-RP-UNIQUE-ID"     "%{UNIQUE_ID}e"
+RequestHeader set "X-RP-REMOTE-USER"   "%{REMOTE_USER}e"
+RequestHeader set "X-RP-SSL-PROTOCOL"  "%{SSL_PROTOCOL}s"
+RequestHeader set "X-RP-SSL-CIPHER"    "%{SSL_CIPHER}s"
 ```
 
 Let’s see how this affects the request between the reverse proxy and the backend:
@@ -756,7 +757,7 @@ DocumentRoot            /apache/htdocs
 
         Options None
 
-        ProxySet enableruse=on
+        ProxySet enablereuse=on
 
     </Proxy>
 
@@ -766,7 +767,7 @@ DocumentRoot            /apache/htdocs
 
         Options None
 
-        ProxySet enableruse=on
+        ProxySet enablereuse=on
 
     </Directory>
 

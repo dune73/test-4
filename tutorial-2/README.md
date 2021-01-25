@@ -98,7 +98,7 @@ Broadly speaking, _Timeout_ indicates the maximum time in seconds that may be us
 
 _MaxRequestWorkers_ is the maximum number of threads working in parallel to reply to requests. The default value is once again a bit high. Let’s set it to 100. If this value is reached in production, then we have a lot of traffic.
 
-By default, the Apache server listens to any available URL on the internet. However, for our tests we will have it initially listen to only the _IPv4 local host_ URL and on default HTTP port 80. It’s possible to have multiple _Listen_ directives one after the other, but only one is sufficient for our purposes at the moment.
+By default, the Apache server listens to any available URL on the internet. However, for our tests we will have it initially listen to only the _IPv4 local host_ URL and on default HTTP port 80. It’s possible to have multiple _Listen_ directives one after the other, but having only one is sufficient for our purposes at the moment.
 
 Let’s now load five modules:
 

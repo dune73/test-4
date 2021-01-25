@@ -293,7 +293,7 @@ TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 4216 1517 -% 1740 - - - - - - -
 TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 4254 1517 -% 264 - - - - - - -
 ```
 
-As predicted above, a lot of values are still empty or indicated by _-_. But we see that we talked to server _www.example.com_ on port 443 and that the size of the request increased with every _POST_ request, with it being almost 4K, or 4096 bytes, in the end. Simple analyses can already be performed with this simple log file.
+As predicted above, a lot of values are still empty or indicated by _-_. But we see that we talked to server _www.example.com_ on port 443 and that the size of the request increased with every _POST_ request, with it being over 4K, or 4096 bytes, in the end. Simple analyses can already be performed with this simple log file.
 
 
 ### Step 8: Performing simple analyses using the extended log format
@@ -305,7 +305,7 @@ $> egrep -o "\% [0-9]+ " logs/access.log | cut -b3- | tr -d " " | sort -n
 ```
 
 Using this one-liner we cut out the value that specifies the duration of a request from the log file. We use the percent sign of the Deflate value as an anchor for a simple regular expression and take the number following it. _egrep_ makes sense here, because we want to work with regex, the _-o_ option results in only the match itself being output, not the entire line. This is very helpful.
-One detail that will help us to avoid errors in the future is the space following the plus sign. It only accepts values that have a space following the number. The problem is the user agent that also appears in our log format and which has up to now also included percent signs. We assume here that percent signs can be followed by a space and a whole number. But this is not followed by another space and this combination only appears at the end of the log file line after the _Deflate space savings_ percent sign. We then use _cut_ so that only the third and subsequent characters are output and finally we use _tr_ to separate the closing space (see regex). We are then ready for numerical sorting. This delivers the following result:
+One detail that will help us to avoid errors in the future is the space following the plus sign. It only accepts values that have a space following the number. The problem is the user agent that also appears in our log format and which has up to now also included percent signs. We assume here that percent signs can be followed by a space and a whole number. But this is not followed by another space and this combination only appears at the end of the log file line after the _Deflate space savings_ percent sign. We then use _cut_ so that only the third and subsequent characters are output and finally we use _tr_ to separate the closing space (see regex). We are then ready for numerical sorting. This delivers the following result for me (your mileage will vary):
 
 ```bash
 ...
