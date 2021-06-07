@@ -1,5 +1,7 @@
 ##### Changelog
 
+* 2021-06-07: Added package uuid to pkg list, edited section title for step 4
+* 2021-06-02: Update Apache (2.4.48)
 * 2020-10-09: Updated Apache to version 2.4.46
 * 2020-06-28: Updated Apache to version 2.4.43
 * 2019-12-02: Updated Apache to version 2.4.41
