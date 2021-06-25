@@ -13,10 +13,6 @@
 # -----------------------------------------------------------------------
 
 function usage() {
-
-echo
-echo "$0"
-
 cat <<'EOF'
 
 Script to launch apache repeatedly via httpd -X.
@@ -25,9 +21,18 @@ The script guesses the desired apache config and handles
  - sudo
  - pidfile
  - semaphore cleanup
-
+ 
 EOF
 
+echo "Usage: $0 [-h] [-v[v]] [-m] [-c <config>]"
+cat <<'EOF'
+Options:
+	-h | --help			: print this help text
+	-v | --verbose			: increase verbosity level
+	-m | --manual-mode		: manually restart apache by pressing enter
+					  (does not require inotify-tools)
+	-c | --config-file <config>	: use specific config file
+EOF
 }
 
 function wait_pid_exists() {
@@ -69,19 +74,123 @@ function wait_process_disappears() {
 	fi
 }
 
+function start_apache() {
+	# check config files
+	echo
+	if [ "$VERBOSITY" -ge 1 ]; then echo -n "`timestamp`Checking config file ... "; fi
+	
+	sudo $AP_BIN -t -f $AP_CONF_FILE 2> /dev/null
+	rc=$?
+	if [ ${rc} != 0 ]; then
+		if [ "$VERBOSITY" -ge 1 ]; then echo  "fail"; fi
+		echo
+		echo "`timestamp`Errors in config file detected"
+		echo "`timestamp`----------------------------------------------------------------------"
+		sudo $AP_BIN -t -f $AP_CONF_FILE
+		echo "`timestamp`----------------------------------------------------------------------"
+		echo
+		echo "`timestamp`Not restarting apache because of syntax errors in config file"
+		echo
+		return ${rc}
+	fi
+	if [ "$VERBOSITY" -ge 1 ]; then echo "ok"; fi
+	
+	if [ -f $AP_PID_FILE ]; then
+		
+		ps ax | grep -v " grep " | grep -q $(cat $AP_PID_FILE) 
+		
+		if [ $? -eq 0 ]; then
+
+			echo -n "`timestamp`Stopping active apache process ... "
+
+			sudo kill -TERM $(cat $AP_PID_FILE)
+
+			wait_process_disappears
+		else
+			echo "`timestamp`No running process found"
+			sudo rm $AP_PID_FILE
+		fi
+	fi
+
+	# clean up semaphores
+	sudo ipcs -s | grep $AP_USER | awk '{ print $2 }' | xargs -n 1 sudo ipcrm sem 2>/dev/null >/dev/null
+
+	echo -n "`timestamp`Launching apache on config file $AP_CONF_FILE ... "
+
+	sudo $AP_BIN -X -f $AP_CONF_FILE &
+
+	wait_pid_exists
+	
+	echo
+}
+
+function print_instructions() {
+	if [ "$MANUAL_MODE" -eq 1 ]; then
+		echo "`timestamp`Press [Enter] to restart apache, press [Ctrl+C] to exit: "
+	else
+		echo "`timestamp`Edit and save '$AP_CONF_FILE' to restart apache, press [Ctrl+C] to exit: "
+	fi
+}
+
+function clean_exit() {
+	echo
+	echo -n "`timestamp`Bailing out ... "
+	
+	if [ -f $AP_PID_FILE ]; then
+		sudo kill -TERM $(cat $AP_PID_FILE)
+		wait_process_disappears
+	fi
+	
+	echo
+	exit 0
+}
+
+function timestamp() {
+	if [ "$VERBOSITY" -ge 2 ]; then echo -n "$(date +"%T") "; fi
+}
 
 # -----------------------------------------------------------------------
 # INIT
 # -----------------------------------------------------------------------
 
-VERBOSE=0
+VERBOSITY=0
+MANUAL_MODE=0
+AP_CONF_FILE=""
 
-AP_CONFS_PATTERN="/etc/apache2/apache2.conf /apache/conf/httpd.conf_* /opt/apache*/conf/httpd.conf_*"
-AP_CONF_FILE=$(ls -tr $AP_CONFS_PATTERN 2>/dev/null | tail -1)
+# parse command line arguments
+while test $# -gt 0; do
+        case "$1" in
+                -h|--help) usage; exit 0 ;;
+                -v*) VERBOSITY=$(( $(echo -n $1 | wc -m)-1 )) ;;
+                --verbose) VERBOSITY=$((VERBOSITY+1)) ;;
+                -m|--manual-mode) MANUAL_MODE=1 ;;
+                -c|--config-file) shift; AP_CONF_FILE=$1 ;;
+                *) usage; exit 1 ;;
+        esac
+        shift
+done
 
-if [ ! -f $AP_CONF_FILE ]; then
-	echo "Apache config file can not be determined. This is fatal. Aborting."
-	exit 1
+# trap Ctrl+c
+trap clean_exit INT
+
+# check if inotifywait command available (not in manual mode)
+if [ "$MANUAL_MODE" -eq 0 ]; then
+	which inotifywait > /dev/null 2> /dev/null
+	rc=$?
+	if [ ${rc} != 0 ]; then
+		echo "`timestamp`The command 'inotifywait' is not available, switching to manual mode."
+		MANUAL_MODE=1
+	fi
+fi
+
+if [ "$AP_CONF_FILE" == "" ]; then
+	AP_CONFS_PATTERN="/etc/apache2/apache2.conf /apache/conf/httpd.conf* /opt/apache*/conf/httpd.conf*"
+	AP_CONF_FILE=$(ls -tr $AP_CONFS_PATTERN 2>/dev/null | tail -1)
+	
+	if [ ! -f $AP_CONF_FILE ]; then
+		echo "`timestamp`Apache config file can not be determined. This is fatal. Aborting."
+		exit 1
+	fi
 fi
 
 AP_ROOT=$(grep ServerRoot $AP_CONF_FILE | sed -e "s/.*ServerRoot\s*//" | tr -d "'" | tr -d '"')
@@ -89,7 +198,7 @@ if [ ! -d $AP_ROOT ]; then
 	if [ -d "/usr/local/apache" ]; then
 		AP_ROOT="/usr/local/apache"
 	else
-		echo "Apache server root can not be determined. This is fatal. Aborting."
+		echo "`timestamp`Apache server root can not be determined. This is fatal. Aborting."
 		exit 1
 	fi
 fi
@@ -100,20 +209,23 @@ if [ ! -f $AP_BIN ]; then
 	if [ -f "/usr/sbin/apache2" ]; then
 		AP_BIN="/usr/sbin/apache2"
 	else
-		echo "Apache binary can not be determined. This is fatal. Aborting."
+		echo "`timestamp`Apache binary can not be determined. This is fatal. Aborting."
 		exit 1
 	fi
 fi
 
+# fetch pid file from config 
 AP_PID_FILE=$(grep PidFile $AP_CONF_FILE | sed -e "s/.*PidFile\s*//" | tr -d "'" | tr -d '"')
 
+# if pid file not configured
+if [ -z "AP_PID_FILE" -o "$AP_PID_FILE" == "" ]; then
+	AP_PID_FILE="$AP_ROOT/logs/httpd.pid"
+fi
+
+# if not absolute path to pid file
 echo "$AP_PID_FILE" | egrep -q "^\/"
 if [ $? -eq 1 ]; then
 	AP_PID_FILE="$AP_ROOT/$AP_PID_FILE"
-fi
-
-if [ -z "AP_PID_FILE" -o "$AP_PID_FILE" == "" ]; then
-	AP_PID_FILE="$AP_ROOT/logs/httpd.pid"
 fi
 
 
@@ -123,89 +235,34 @@ if [ -z "AP_USER" -o "$AP_USER" == "${APACHE_RUN_USER}" ]; then
 	AP_USER="www-data"
 fi
 
-# param checking loop
-while [ 1 ]
-do
-        if [ -n "$1" ]; then
-                ARG="$1"
-                export FC="`echo $ARG | sed -e 's/^\(.\).*/\1/'`"   # first char of $ARG
-                if [ "-" = $FC ]; then
-                        case $1 in
-                        -h) usage; exit;;
-                        --help) usage; exit;;
-                        -v) export VERBOSE=1;;
-                        --verbose) export VERBOSE=1;;
-                        esac
-                        shift
-                else
-                        break
-                fi
-        else
-                break
-        fi
-done
-
-if [ "$VERBOSE" -eq 1 ]; then
-	echo "Apache Root:    $AP_ROOT"
-	echo "Apache Binary:  $AP_BIN"
-	echo "Apache Config:  $AP_CONF_FILE"
-	echo "Apache PidFile: $AP_PID_FILE"
-	echo "Apache User:    $AP_USER"
+if [ "$VERBOSITY" -ge 1 ]; then
+	echo "`timestamp`Apache Root:    $AP_ROOT"
+	echo "`timestamp`Apache Binary:  $AP_BIN"
+	echo "`timestamp`Apache Config:  $AP_CONF_FILE"
+	echo "`timestamp`Apache PidFile: $AP_PID_FILE"
+	echo "`timestamp`Apache User:    $AP_USER"
 fi
 
 
 # -----------------------------------------------------------------------
 # MAIN LOOP
 # -----------------------------------------------------------------------
-
-while [ 1 ]; do
-	echo
-	if [ -f $AP_PID_FILE ]; then
-		
-		ps ax | grep -v " grep " | grep -q $(cat $AP_PID_FILE) 
-		
-		if [ $? -eq 0 ]; then
-
-			echo -n "Stopping active apache process ... "
-
-			sudo kill -TERM $(cat $AP_PID_FILE)
-
-			wait_process_disappears
-		else
-			sudo rm $AP_PID_FILE
-		fi
-	fi
-
-	# clean up semaphores
-	sudo ipcs -s | grep $AP_USER | awk '{ print $2 }' | xargs -n 1 sudo ipcrm sem 2>/dev/null >/dev/null
-
-	echo -n "Launching apache on config file $AP_CONF_FILE ... "
-
-	sudo $AP_BIN -X -f $AP_CONF_FILE &
-
-	wait_pid_exists
-	
-	echo
-	read -r -p 'Press [enter] to restart apache, enter [q] to stop apache and exit: ' var
-
-	if [ "$var" == "q" ]; then
-		break
-
-	fi
-done
-
-
-# -----------------------------------------------------------------------
-# SHUT-DOWN
-# -----------------------------------------------------------------------
-
-echo
-echo -n "Bailing out ... "
-
-if [ -f $AP_PID_FILE ]; then
-	sudo kill -TERM $(cat $AP_PID_FILE)
-	wait_process_disappears
+if [ "$MANUAL_MODE" -eq 1 ]; then
+	while [ 1 ]; do
+		start_apache
+		print_instructions
+		read -r
+	done
+else
+	start_apache
+	if [ "$VERBOSITY" -ge 1 ]; then echo "`timestamp`Starting to watch inode for changes"; echo; fi
+	print_instructions
+	inotifywait -m -e close_write,moved_to --format %w%f $(dirname $AP_CONF_FILE) 2> /dev/null |
+	while read -r file; do
+	  if [ "$file" = $AP_CONF_FILE ]; then
+		if [ "$VERBOSITY" -ge 1 ]; then echo; echo "`timestamp`Config file changed"; fi
+		start_apache
+		print_instructions
+	  fi
+	done
 fi
-
-echo
-
