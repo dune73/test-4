@@ -1,5 +1,6 @@
 set boxwidth 0.5
 set term pngcairo size 1600,900 font 'Humor Sans,28' background rgb 'white'
+	# -> debian font package: fonts-humor-sans
 
 set output 'distribution-untuned.png'
 
@@ -27,7 +28,7 @@ set label 2 "some" at -1,1500 right
 set label 3 "some\nmore" at -1,3000 right
 set label 4 "a lot" at -1,4200 right
 set label 5 "bloody\nmany" at -1,5500 right
-set label 6 "Outlier\nway to the right\n(Score 231!!!)" at 85, 3400 right
+set label 6 "Outlier\nway to the right\n(Score 171!!!)" at 85, 3400 right
 set label 7 "Anomaly Score Distribution" at 70, 5400 right
 set arrow 1 from 86,3150 to 102,2200 head filled linewidth 2
 plot 'distribution-untuned.dat' u 2 title ' ' linecolor rgb "#00EE00"
