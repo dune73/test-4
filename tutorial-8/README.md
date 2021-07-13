@@ -6,7 +6,7 @@ We will take a vanilla installation of the *OWASP ModSecurity Core Rule Set* (CR
 
 ### Why are we doing this?
 
-A fresh installation of the CRS will typically have some false alarms. In some cases, namely at higher paranoia levels, there can be thousands of them. In the last tutorial, we saw a number of approaches for suppressing individual false alarms with the help of rule exclusions. What we're missing is a strategy for coping with false alarms on a scale and this tutorial will show you one. It is obvious, reducing the number of false alarms is the prerequisite for lowering the CRS anomaly threshold and this, in turn, is required in order to use *ModSecurity* to actually ward off attackers. And only after the false alarms really are disabled, or at least curtailed to a large extent, do we get a clear picture of the real attackers.
+A fresh installation of the CRS will typically have some false alarms. In some cases, namely at higher paranoia levels, there can be thousands of them. In the [previous tutorial](https://www.netnea.com/cms/apache-tutorial-7_including-modsecurity-core-rules/), we saw a number of approaches for suppressing individual false alarms with the help of rule exclusions. What we're missing is a strategy for coping with false alarms on a scale and this tutorial will show you one. It is obvious, reducing the number of false alarms is the prerequisite for lowering the CRS anomaly threshold and this, in turn, is required in order to use *ModSecurity* to actually ward off attackers. And only after the false alarms really are disabled, or at least curtailed to a large extent, do we get a clear picture of the real attackers.
 
 During the tutorial we will also learn to use a handy tool that will assist you with the writing of rule exclusions.
 
@@ -937,7 +937,6 @@ When you grow more proficient, you can reduce the number of iterations and tackl
 We have now reached the end of the block consisting of three *ModSecurity tutorials*. The next one will look into setting up a *reverse proxy*.
 
 ### References
-- [Spider Labs Blog Post: Exception Handling](http://blog.spiderlabs.com/2011/08/modsecurity-advanced-topic-of-the-week-exception-handling.html)
 - [ModSecurity Reference Manual](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual)
 
 ### License / Copying / Further use
