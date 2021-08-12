@@ -586,18 +586,25 @@ def read_file(file, params)
   def scan_line_tags (line, params)
     tags = Array.new
     begin
-    	line.split("[tag ").each do |item|
+      line.split("[tag ").drop(1).each do |item|
 		if not /\[/.match(item)
 			item.gsub!(/\].*/, "").gsub!(/"/, "")
 			dprint("Identified tag #{item}", params)
 			tags << item
-                elsif tags.length > 0
-                	# last tag in the list needs special treatment
-                        # elsif makes sure the first split item is not read as a tag
-			item = item.split(" [hostname ")[0]
-			item = item.gsub(/\]$/, "").gsub(/"/, "")
-			dprint("Identified tag #{item}", params)
-			tags << item
+                else
+                	# last tag in the list needs special treatment, we need to make sure we don't get any garbled/cut short tags
+                        # first we split of the remainder of the line
+                        # then we run a series of gsubs, that cuts away broken tags
+                        # We attempt to save a tag when we have the closing quotes. If we lack those, we abandon it. So we never take a tag that
+                        # is cut short, but the closing bracket is optional for the final tag
+			item = item.split("[hostname ")[0]
+                        item = item.gsub(/\ $/, "").gsub(/ta$/, "").gsub(/\]$/, "").gsub(/\[$/, "").gsub(/\ $/, "").gsub(/\]$/, "")
+                        if item.length > 2 and item[-1] == "\""
+                          # This is the check for the terminating quotes
+			  item.gsub!(/"/, "")
+			  dprint("Identified tag #{item}", params)
+			  tags << item
+                        end
 		end
 	end
       return tags
@@ -606,6 +613,7 @@ def read_file(file, params)
       return tags
     end
   end
+
 
   while ! file.eof?
 	line = file.readline
@@ -631,8 +639,16 @@ def read_file(file, params)
 	  end
 
 	  begin
-	    timestamp = line.scan(/(2[0-9]{3}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6})/)[0][0]
-	  rescue
+            # The time stamp format proposed in the netnea tutorials is privileged. If it
+            # this does not work, we use the date library and if that fails too, we
+            # fall back to the epoch.
+	    item = line.scan(/(2[0-9]{3}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6})/)
+            if item.length > 0
+              timestamp = item[0][0]
+            else
+              timestamp = DateTime.parse(line).to_s
+            end
+          rescue
             timestamp = "1970-01-01 00:00:00.000000"
 	  end
 
@@ -722,7 +738,7 @@ def read_file(file, params)
   end
 
   if advisory && params[:output_format] == OUTPUT_JSON
-    advisory = { type: "advisory", advisory: advisory.rstrip }.to_json
+    advisory = { type: "advisory", advisory: advisory.rstrip, parsed_event: events[-1]&.to_hash }.to_json
   end
 
   return advisory, events
