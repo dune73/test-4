@@ -105,7 +105,9 @@ OUTPUT_JSON = 2
 
 RULEID_DEFAULT = 10000
 
-ADVISORY_RULES = ["911100", "920360", "920370", "920380", "920390", "920400", "920410", "920420", "920430", "920440", "920450", "920480", "949110", "949111", "959100", "980130"]
+ADVISORY_RULES = ["911100", "920360", "920370", "920380", "920390", "920400", "920410", "920420", "920430", "920440", "920450", "920480", "949110", "949111", "959100", "980130"] # These are rules that should not be handled with a rule exclusion. The advisory has more infos.
+
+TRANSPOSE_RULES = ["921180", "930120", "931130"] # These are rules, where the parameter name has to be transposed to be used in a rule exclusion
 
 params[:filenames] = Array.new
 params[:output_format] = OUTPUT_TEXT
@@ -128,9 +130,9 @@ Severities = {
 }
 
 class Event
-	attr_accessor :timestamp, :id, :unique_id, :ip, :msg, :data, :uri, :parameter, :hostname, :file, :line, :version, :tags
+	attr_accessor :timestamp, :id, :unique_id, :ip, :msg, :data, :uri, :parameter, :orig_parameter, :hostname, :file, :line, :version, :tags
 
-	def initialize(timestamp, id, unique_id, ip, msg, data, uri, parameter, hostname, file, line, version, tags)
+	def initialize(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, file, line, version, tags)
 		@timestamp = timestamp
 		@id = id
 		@unique_id = unique_id
@@ -139,6 +141,7 @@ class Event
 		@data = data
 		@uri = uri
 		@parameter = parameter
+		@orig_parameter = orig_parameter
 		@hostname = hostname
 		@file = file
 		@line = line
@@ -566,6 +569,48 @@ EOF
 
 end
 
+def transpose_parameter(id, parameter, data, params) 
+  # Purpose: transpose a parameter name
+  # Input  : rule id (str), parameter name (str), data (str), script params hash
+  # Output : debug output
+  # Return : transposed parameter (str)
+  # Remarks: none
+  # Tests:   none
+  
+  dprint("Original parameter name: #{parameter}", params)
+    
+  if id == "921180"
+    # 921180 works on a TX parameter that is created in 921170.
+    # There is a case to be made a true rule exclusion should therefore work
+    # on 921170. However, given the alert happens on 921180, that would complicate 
+    # the code quite a bit and it might also puzzle the users.
+    #
+    # Therefore we actually leave the parameter as is. Yet we keep
+    # 921180 here since it looks as if it would be a rule that is in
+    # need of a transposition, then we can simply take the TX parameter
+    # and build the rule id based on that.
+
+  elsif id == "930120"
+
+    parameter = data.gsub(/^.* ARGS/, "ARGS").gsub(/: .*/, "")
+
+  elsif id == "931130"
+
+    parameter = parameter.gsub(/^TX:rfi_parameter_/, "")
+
+  else
+
+    puts_error("Transpose parameter called for a rule id that the script does not know how to transpose.", detail)
+    exit 1
+
+  end
+
+  dprint("Transposed parameter name: #{parameter}", params)
+
+  return parameter
+  
+end
+
 def read_file(file, params)
   # Purpose: Read file
   # Input  : file handle
@@ -667,7 +712,7 @@ def read_file(file, params)
 	  if /ModSecurity: (Warning.|Access denied with.*) (Pattern match|Matched phrase)/.match(line)
 		    # Operators: pm, pmFromFile, strmatch, rx
 	    	    # example: standard operator results in:  ModSecurity: Warning. Pattern match "^[\\\\d.:]+$" at REQUEST_HEADERS:Host.
-		    parameter = line.scan(/ (at|against) "?(.*?)"?( required)?\. \[file \"/)[0][1]
+		    orig_parameter = line.scan(/ (at|against) "?(.*?)"?( required)?\. \[file \"/)[0][1]
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) detected (SQLi|XSS) using libinjection/.match(line)
 		    # Operators: detectSQLi, detectXSS
@@ -675,23 +720,23 @@ def read_file(file, params)
 		    # The detectSQLi / detectXSS operator do not report the affected parameter by itself. Instead we need to fetch the parameter out of the logdata field. 
 		    # This only works when the logdata format is consistent.
 		    # Right now, we use the format defined in CRS3 rule 942100.
-		    parameter = line.scan(/\[data "Matched Data:.*found within ([^ ]*): /)[0][0]
+		    orig_parameter = line.scan(/\[data "Matched Data:.*found within ([^ ]*): /)[0][0]
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) String match/.match(line)
 		    # Operators: beginsWith, contains, containsWord, endsWith, streq, within
 	    	    # example: ModSecurity: Warning. String match "/" at REQUEST_URI. [file ...] 
 	    	    # example: ModSecurity: Warning. String match within "GET POST" at REQUEST_METHOD. [file ...]
-		    parameter = line.scan(/String match (within )?".*" at (.*?)\. \[file /)[0][1]
+                    orig_parameter = line.scan(/String match (within )?".*" at (.*?)\. \[file /)[0][1]
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) Operator [A-Z][A-Z] matched/.match(line)
 		    # Operators: eq, ge, gt, le, lt
 	    	    # example: ModSecurity: Warning. Operator EQ matched 1 at ARGS. [file ...]
-		    parameter = line.scan(/Operator [A-Z][A-Z] matched .* at ([^ ]*)\. \[file /)[0][0]
+		    orig_parameter = line.scan(/Operator [A-Z][A-Z] matched .* at ([^ ]*)\. \[file /)[0][0]
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) IPmatch(FromFile)?: ".*" matched at/.match(line)
 		    # Operators: ipMatch, ipMatchFromFile
 	    	    # example: ModSecurity: Warning. IPmatch: "127.0.0.1" matched at REMOTE_ADDR.
-		    parameter = line.scan(/IPmatch(FromFile)?: "[^"]*" matched at ([^ ]*)\. \[file /)[0][1]
+		    orig_parameter = line.scan(/IPmatch(FromFile)?: "[^"]*" matched at ([^ ]*)\. \[file /)[0][1]
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) Unconditional match in SecAction/.match(line)
 		    # Operators: unconditionalMatch
@@ -701,17 +746,22 @@ def read_file(file, params)
 		    # standard way of configuring that, so there is no convention to base ourselves upon.
 		    # Given the use of @unconditionalMatch is very rare,
 		    # we set the parameter to "UNKNOWN"
-		    parameter = "UNKNOWN"
+		    orig_parameter = "UNKNOWN"
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) Found \d+ byte\(s\) in .* outside range:/.match(line)
 		    # Operators: validateByteRange
 	    	    # example: ModSecurity: Warning. Found 9 byte(s) in REMOTE_ADDR outside range: 0. [file ... ]
-		    parameter = line.scan(/Found \d+ byte\(s\) in ([^ ]*) outside range: /)[0][0]
+		    orig_parameter = line.scan(/Found \d+ byte\(s\) in ([^ ]*) outside range: /)[0][0]
+                    
+	  elsif /ModSecurity: (Warning.|Access denied with.*) Invalid UTF-8 encoding/.match(line)
+		    # Operators: validateByteRange
+	    	    # example: ModSecurity: Warning. Invalid UTF-8 encoding: overlong character detected at ARGS:foo
+                    orig_parameter = line.scan(/overlong character detected at ([^ ]*)\. \[offset \"[0-9]\"\] \[file /)[0][0]
 
 	  elsif /ModSecurity: (Warning.|Access denied with.*) Match of ".*" against ".*" required\./.match(line)
 		    # Operators: All negated operators (-> "!@xxx ...")
 	    	    # example: ModSecurity: Warning. Match of "rx ^(abc)$" against "ARGS:a" required. [file
-		    parameter = line.scan(/ against "([^ ]*)" required\. \[file /)[0][0]
+		    orig_parameter = line.scan(/ against "([^ ]*)" required\. \[file /)[0][0]
 
 	  else
   		$stderr.puts "ERROR: Could not interpret alert message. Ignoring message: #{line}"
@@ -722,7 +772,22 @@ def read_file(file, params)
 	    exit 1
 	  end
 
-	  events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, hostname, eventfile, eventline, version, tags)
+          if  TRANSPOSE_RULES.grep(id).count == 1
+            # If the rule is on the list of transpose rules, then
+            # we have to transpose the parameter name in a certain 
+            # way depending on the rule in question. The transposed
+            # parameter will replace the parameter and the original
+            # parameter will be stored as original_parameter.
+
+            parameter = transpose_parameter(id, orig_parameter, data, params)
+
+          else
+
+            parameter = orig_parameter
+
+          end
+
+	  events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags)
 
         elsif /- Execution error - PCRE limits exceeded /.match(line)
           # e.g. ModSecurity: Rule 55cff957e738 [id "..."][file "/....conf"][line "471"] - Execution error - PCRE limits exceeded (-8): (null). 
