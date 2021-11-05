@@ -100,12 +100,12 @@ The web server configured in Tutorial 2 runs as user _www-data_ or, depending on
 Let’s enter the directory with the Apache source code and compile the server once more. 
 
 ```bash
-$> cd /usr/src/apache/httpd-2.4.48
-$> ./configure --prefix=/opt/apache-2.4.48 --enable-mods-shared=all \
+$> cd /usr/src/apache/httpd-2.4.51
+$> ./configure --prefix=/opt/apache-2.4.51 --enable-mods-shared=all \
    --with-apr=/usr/local/apr/bin/apr-1-config \
    --with-apr-util=/usr/local/apr/bin/apu-1-config --enable-mpms-shared="event" \
    --enable-nonportable-atomics=yes --enable-suexec --with-suexec-caller=www-data \
-   --with-suexec-docroot=/opt/apache-2.4.48/bin && make && sudo make install
+   --with-suexec-docroot=/opt/apache-2.4.51/bin && make && sudo make install
 ```
 
 Besides _configure_, which we are familiar with, three options have been added for handling _suexec_. _Enable-suexec_ is self-explanatory, _with-suexec-caller_ we tell the conscientious module that only the user _www-data_ is to be given permission to access the program behind the module. We are after all telling the module where scripts being called are located. For simplicity’s sake let’s use the existing _bin directory_. _suexec_ is however a bit fussy and we are unable to use the symlink. So it will have to be the fully qualified path.

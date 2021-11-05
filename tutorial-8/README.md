@@ -418,7 +418,7 @@ If you do not want to tweak with the rule ID by hand, then you can also pass the
 
 ### Step 4: Reducing the anomaly score threshold
 
-We have tuned away the alerts leading to the highest anomaly scores. Actually, anything above 100 is now gone. In a production setup, I would deploy the updated configuration and observe the behaviour a bit. If the high scores are really gone, then it is time to reduce the anomaly limit. A typical first step is from 10,000 to 100. Then we do more rules exclusions, reduce to 50 or so, then to 20, 10 and 5. In fact, a limit of 5 is really strong (first critical alert blocks a request).
+We have tuned away the alerts leading to the highest anomaly scores. Actually, anything above 100 is now gone. In a production setup, I would deploy the updated configuration and observe the behaviour a bit. If the high scores are really gone, then it is time to reduce the anomaly limit. A typical first step is from 10,000 to 100. Then we do more rules exclusions, reduce to 50 or so, then to 20, 10 and 5. In fact, a limit of 5 is really strong (first critical alert blocks a request), but for sites with less security needs, a limit of 10 might just be good enough. Anything above does not really block attackers.
 
 But before we get there, we need to add a few more rule exclusions.
 
@@ -785,7 +785,7 @@ I suggest you run the traffic generator again and check the output. I did and I 
 
 ### Step 8: Summarizing all rule exclusions
 
-Time to look back and rearrange the configuration file with all the rule exclusions. I have regrouped them a bit, swapped the rule IDs 10001 and 10002, and I added some comments.
+Time to look back and rearrange the configuration file with all the rule exclusions. I have regrouped them a bit, swapped the rule IDs 10001 and 10002, and I added some comments. It's quite a few of rule exclusions. But then it's also for a site blogging about SQL running at paranoia level 4; not too bad I think.
 
 ```bash
 # === ModSec Core Rule Set: Runtime Exclusion Rules (ids: 10000-49999)
