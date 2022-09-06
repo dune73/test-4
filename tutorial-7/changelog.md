@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-09-06: Updated CRS version from 3.3.0 and 3.3.2
 * 2019-07-22: Moved CRS repo to new github at https://github.com/coreruleset/coreruleset
 * 2019-11-04: Added env=HTTPS condition to STS header config
 * 2019-11-01: Consistent naming of CRS in config comments
