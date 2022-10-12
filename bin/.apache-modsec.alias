@@ -4,8 +4,13 @@
 # Every alias comes with a 2nd variant that also includes the unique request id
 alias alip='cut -d\  -f1'
 alias alipid='cut -d\" -f1,11 | cut -d\  -f1,7'
-alias alcountry='cut -d\  -f2'
+alias alcountry='cut -d\  -f2 | cut -d\; -f1'
+# FIXME: alcountryid does not extract country from combined country;asn;asorg record
 alias alcountryid='cut -d\" -f1,11 | cut -d\  -f2,7'
+alias alasn='cut -d\  -f2 | sed -e "s/.*;\([0-9-]*\);.*/\1/" -e "s/^[A-Z][A-Z]$/-/" -e "s/-;-;-/-/"'
+# FIXME: missing alasnid
+alias alasorg='cut -d\  -f2 | sed -e "s/.*;//" -e "s/^[A-Z][A-Z]$/-/"'
+# FIXME: missing alasorgid
 alias aluser='cut -d\  -f3'
 alias aluserid='cut -d\" -f1,11 | cut -d\  -f3,7'
 alias altimestamp='cut -d\  -f4,5 | tr -d "[]"'
