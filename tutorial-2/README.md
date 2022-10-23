@@ -145,8 +145,6 @@ As we did in Tutorial 1 let’s start the server in the foreground and not as a 
 ```bash
 
 $> cd /apache
-
-
 $> sudo ./bin/httpd -X
 ```
 

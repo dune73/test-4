@@ -52,7 +52,8 @@ The stage is thus set and we are ready for ModSecurity.
 
 ```bash
 $> tar -xvzf modsecurity-2.9.6.tar.gz
-$> cd modsecurity-2.9.6
+...
+$> cd ModSecurity-2.9.6
 $> ./configure --with-apxs=/apache/bin/apxs \
 --with-apr=/usr/local/apr/bin/apr-1-config \
 --with-pcre=/usr/bin/pcre-config

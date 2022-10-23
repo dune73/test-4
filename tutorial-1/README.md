@@ -14,11 +14,18 @@ In professional use of the web server it’s very often the case that special re
 
 It’s not all that important where the source code is located. The following is a recommendation based on the [File Hierarchy Standard](http://www.pathname.com/fhs/). The FHS defines the path structure of a Unix system; the structure for all stored files. Note that in the second command `whoami` evaluates to the username and not root (despite `sudo`).
 
-```bash
-$> sudo mkdir /usr/src/apache
-$> sudo chown `whoami` /usr/src/apache
-$> cd /usr/src/apache
-```
+
+Create folder:
+
+`sudo mkdir /usr/src/apache`
+
+Take ownership of folder:
+
+`sudo chown $(whoami) /usr/src/apache`
+
+Change directory to the folder:
+
+`cd /usr/src/apache`
 
 ### Step 2: Meeting the requirements for apr and apr-util
 
@@ -205,7 +212,7 @@ This is unimportant and we can ignore the warning for the time being.
 
 ### Step 8: Trying it out
 
-The engine is running. But is it also working? Time for the function test: We access Apache by entering the following URL in our browser:
+The engine is running. But is it also working? Time for the function test: We access Apache by entering the following URL with the IP address of your host into our browser (i.e. replace the `127.0.0.1` with the server IP address unless you are working on localhost like me):
 
 [http://127.0.0.1/index.html](http://127.0.0.1/index.html)
 
