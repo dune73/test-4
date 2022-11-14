@@ -674,7 +674,7 @@ SecRule REMOTE_ADDR  "@streq 127.0.0.1"   "id:12000,phase:1,pass,log,auditlog,\
 We then find the traffic for the client 127.0.0.1 specified in the rule in the audit log.
 
 ```bash
-$> curl localhost
+$> curl http://localhost/index.html
 ...
 $> sudo tail -1 /apache/logs/modsec_audit.log
 localhost 127.0.0.1 - - [17/Oct/2015:06:17:08 +0200] "GET /index.html HTTP/1.1" 404 214 "-" "-" …
