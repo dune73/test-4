@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-14: Removing autogen.sh again
 * 2022-09-23: Introduce autogen.sh into the compilation process
 * 2022-09-14: Update ModSecurity (2.9.6), have links point to GitHub instead of modsecurity.org
 * 2022-09-13: Replace terms "blacklist" and "whitelist" with "denylist" and "allowlist"

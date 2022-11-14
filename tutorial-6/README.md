@@ -53,13 +53,7 @@ The stage is thus set and we are ready for ModSecurity.
 ```bash
 $> tar -xvzf modsecurity-2.9.6.tar.gz
 ...
-$> cd ModSecurity-2.9.6
-$> ./autogen.sh
-```
-
-Starting ModSecurity 2.9.6, we can no longer call the `configure` script immediately. It has to be prepared first. This is done by calling `autogen.sh`, which will then prepare `configure` for us.
-
-```bash
+$> cd modsecurity-2.9.6
 $> ./configure --with-apxs=/apache/bin/apxs \
 --with-apr=/usr/local/apr/bin/apr-1-config \
 --with-pcre=/usr/bin/pcre-config
