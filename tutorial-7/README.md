@@ -24,32 +24,32 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 
 ```
 $> cd /apache/conf
-$> wget https://github.com/coreruleset/coreruleset/archive/v3.3.2.tar.gz
-$> tar -xvzf v3.3.2.tar.gz
-coreruleset-3.3.2
-coreruleset-3.3.2/
-coreruleset-3.3.2/.github/
-coreruleset-3.3.2/.github/ISSUE_TEMPLATE.md
-coreruleset-3.3.2/.gitignore
-coreruleset-3.3.2/.gitmodules
-coreruleset-3.3.2/.travis.yml
-coreruleset-3.3.2/CHANGES
-coreruleset-3.3.2/IDNUMBERING
-coreruleset-3.3.2/INSTALL
-coreruleset-3.3.2/KNOWN_BUGS
-coreruleset-3.3.2/LICENSE
-coreruleset-3.3.2/README.md
-coreruleset-3.3.2/crs-setup.conf.example
-coreruleset-3.3.2/documentation/
-coreruleset-3.3.2/documentation/OWASP-CRS-Documentation/
-coreruleset-3.3.2/documentation/README
+$> wget https://github.com/coreruleset/coreruleset/archive/v3.3.4.tar.gz
+$> tar -xvzf v3.3.4.tar.gz
+coreruleset-3.3.4
+coreruleset-3.3.4/
+coreruleset-3.3.4/.github/
+coreruleset-3.3.4/.github/ISSUE_TEMPLATE.md
+coreruleset-3.3.4/.gitignore
+coreruleset-3.3.4/.gitmodules
+coreruleset-3.3.4/.travis.yml
+coreruleset-3.3.4/CHANGES
+coreruleset-3.3.4/IDNUMBERING
+coreruleset-3.3.4/INSTALL
+coreruleset-3.3.4/KNOWN_BUGS
+coreruleset-3.3.4/LICENSE
+coreruleset-3.3.4/README.md
+coreruleset-3.3.4/crs-setup.conf.example
+coreruleset-3.3.4/documentation/
+coreruleset-3.3.4/documentation/OWASP-CRS-Documentation/
+coreruleset-3.3.4/documentation/README
 ...
-$> sudo ln -s coreruleset-3.3.2 /apache/conf/crs
+$> sudo ln -s coreruleset-3.3.4 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
-$> rm v3.3.2.tar.gz
+$> rm v3.3.4.tar.gz
 ```
 
-This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-3.3.2`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
+This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-3.3.4`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
 
 The setup file allows us to tweak many different settings. It is worth a look - if only to see what is included. However, we are OK with the default settings and will not touch the file: We just make sure it is available under the new filename `crs-setup.conf`. Then we can continue to update the configuration to include the rules files.
 
@@ -479,7 +479,7 @@ $> nikto -h localhost
 + 1 host(s) tested
 ```
 
-This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 13.3.2 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 11 MB logfile. Looking over the audit log tree reveals 92 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
+This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 13,000 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 11 MB logfile. Looking over the audit log tree reveals 92 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
 
 ### Step 5: Analyzing the alert messages
 
