@@ -326,7 +326,7 @@ We know that we made 100 GET and 100 POST requests. But for the sake of practice
 $> egrep -c "\"GET " logs/access.log 
 ```
 
-This should result in 100 GET requests:
+This should result in at least 100 GET requests. More if you did not start with an empty file:
 
 ```bash
 100
@@ -486,9 +486,10 @@ test -e $HOME/.apache-modsec.alias && . $HOME/.apache-modsec.alias
 [[ ":$PATH:" != *":$HOME/bin:"* ]] && PATH="$HOME/bin:${PATH}"
 ```
 
-Let’s use the new alias right away:
+Restart the shell by loggin in anew and then let’s use the new alias right away:
 
 ```bash
+$> cd /apache/logs
 $> cat tutorial-5-example-access.log | alsslprotocol | sort | uniq -c | sort -n
       4 -
     155 TLSv1

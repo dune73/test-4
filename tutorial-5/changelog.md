@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-14: Minor fixes
 * 2020-07-22: Typo
 * 2020-02-04: Remark about making percent.awk executable
 * 2019-11-04: Replaced ~ with $HOME in .bashrc recipe
