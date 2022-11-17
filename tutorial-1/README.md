@@ -76,7 +76,6 @@ And once we are at it, let's install everything else we are going to need throug
 * ruby
 * ssl-cert
 * uuid
-* zlibc
 * zlib1g-dev
 
 These are the package names on Debian-based distributions. The packages may have different names elsewhere. 

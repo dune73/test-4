@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-17: Remove zlibc from list of dependencies
 * 2022-08-28: Update Apache (2.4.54)
 * 2021-11-05: Update Apache (2.4.51)
 * 2021-06-07: Added package uuid to pkg list, edited section title for step 4
