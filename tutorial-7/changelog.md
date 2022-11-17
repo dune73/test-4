@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-17: Update log example in step 4 to extended-2019 logformat
 * 2022-11-14: Updated CRS version from 3.3.2 to 3.3.4
 * 2022-09-06: Updated CRS version from 3.3.0 to 3.3.2
 * 2019-07-22: Moved CRS repo to new github at https://github.com/coreruleset/coreruleset

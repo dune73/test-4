@@ -424,8 +424,8 @@ As predicted, we have not been blocked, but let's check the logs to see if anyth
 ```bash
 $> tail -1 /apache/logs/access.log
 127.0.0.1 - - [2016-10-25 08:40:01.881647] "GET /index.html?exec=/bin/bash HTTP/1.1" 200 48 "-" …
-"curl/7.47.0" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
-117 479 5 0
+"curl/7.47.0" "-" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
+117 479 5-0-0-0 0-0-0-0 5 0
 ```
 
 It looks like a standard `GET` request with a status 200. The interesting bit is the second field from the end. In the log file tutorial, we defined a lengthy Apache access log format with two items reserved for the anomaly score. So far, these values have been empty; now they are being filled. The first of the two numbers at the end is the request's inbound anomaly score. Our submission of `/bin/bash` as parameter got us a score of 5. This is considered a critical rule violation by the Core Rules. An error level violation is set at 4, a warning at 3 and a notice at 2. However, if you look over the rules in all the files, most of them score as critical violations with a score of 5.
