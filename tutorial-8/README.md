@@ -58,7 +58,7 @@ The character of the application, the paranoia level and the amount of traffic a
 
 There is the ModSecurity Audit log of course, but I rarely look at it unless I have a very specific interest. For most of the cases, the ModSecurity alert message in the error log is all I need. But this is not where I start. Let's look looking at the access log first. We defined the log format in a way that gives us the anomaly scores for every request and that's exactly what we will be using at this stage.
 
-In the previous tutorial, we used the script [modsec-positive-stats.rb](https://www.netnea.com/files/modsec-positive-stats.rb). We return to this script with the example access log as the source:
+In the previous tutorial, we used the script [modsec-positive-stats.rb](https://www.netnea.com/files/modsec-positive-stats.rb). We return to this script with the example access log as the source and the alias `alscores` that is part of the alias package introduced in tutorial number 5; it extracts the incoming and outgoing anomaly score of a request, separated by a semicolon:
 
 ```bash
 $> cat tutorial-8-example-access.log | alscores | modsec-positive-stats.rb
