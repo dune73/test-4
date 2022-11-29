@@ -44,7 +44,7 @@ coreruleset-3.3.4/documentation/
 coreruleset-3.3.4/documentation/OWASP-CRS-Documentation/
 coreruleset-3.3.4/documentation/README
 ...
-$> sudo ln -s coreruleset-3.3.4 /apache/conf/crs
+$> ln -s coreruleset-3.3.4 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
 $> rm v3.3.4.tar.gz
 ```

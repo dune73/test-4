@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-25: Removed unnecessary sudo from ln comand in step 1
 * 2022-11-17: Update log example in step 4 to extended-2019 logformat
 * 2022-11-14: Updated CRS version from 3.3.2 to 3.3.4
 * 2022-09-06: Updated CRS version from 3.3.0 to 3.3.2

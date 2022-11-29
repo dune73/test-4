@@ -523,7 +523,7 @@ $> alias sucspercent='sort | uniq -c | sort -n | $HOME/bin/percent.awk'
 ```
 
 Traditionally, _awk_ is used for quick calculations in Linux. In addition to the above linked _alias_ file, which also includes the _sucspercent_, the _awk_ script _percent.awk_ is also available. It is ideally placed in the _bin_ directory of your home directory.
-The _sucspercent_ alias above then assumes this setup. The _awk_ script is available [here](https://raw.githubusercontent.com/Apache-Labor/labor/master/bin/percent.awk). Please make sure it is executable or you will get a permission denied.
+The _sucspercent_ alias above then assumes this setup. The _awk_ script is available via this link: [percent.awk](https://raw.githubusercontent.com/Apache-Labor/labor/master/bin/percent.awk). Please make sure it is executable or you will get a permission denied.
 
 ```bash
 $> cat tutorial-5-example-access.log | alsslprotocol | sucspercent 

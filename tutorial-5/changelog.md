@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-25: Updated link name in step 10
 * 2022-11-14: Minor fixes
 * 2020-07-22: Typo
 * 2020-02-04: Remark about making percent.awk executable

@@ -521,13 +521,13 @@ SecRule REQUEST_METHOD "!@pm GET HEAD POST OPTIONS" \
     msg:'Method %{MATCHED_VAR} not allowed'"
 
 # Validate URIs
-SecRule REQUEST_FILENAME "@beginsWith /login/static/css" \
+SecRule REQUEST_FILENAME "@beginsWith /login/static/css/" \
     "id:11200,phase:1,pass,nolog,tag:'Login Allowlist',\
     skipAfter:END_ALLOWLIST_URIBLOCK_login"
-SecRule REQUEST_FILENAME "@beginsWith /login/static/img" \
+SecRule REQUEST_FILENAME "@beginsWith /login/static/img/" \
     "id:11201,phase:1,pass,nolog,tag:'Login Allowlist',\
     skipAfter:END_ALLOWLIST_URIBLOCK_login"
-SecRule REQUEST_FILENAME "@beginsWith /login/static/js" \
+SecRule REQUEST_FILENAME "@beginsWith /login/static/js/" \
     "id:11202,phase:1,pass,nolog,tag:'Login Allowlist',\
     skipAfter:END_ALLOWLIST_URIBLOCK_login"
 SecRule REQUEST_FILENAME \

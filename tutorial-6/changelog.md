@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-11-29: Adding trailing slashes to folder names in allow-list
 * 2022-11-14: Removing autogen.sh again
 * 2022-09-23: Introduce autogen.sh into the compilation process
 * 2022-09-14: Update ModSecurity (2.9.6), have links point to GitHub instead of modsecurity.org
