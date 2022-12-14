@@ -506,7 +506,7 @@ SecMarker BEGIN_ALLOWLIST_login
 
 # Make sure there are no URI evasion attempts
 SecRule REQUEST_URI "!@streq %{REQUEST_URI_RAW}" \
-    "id:11000,phase:1,deny,t:normalizePathWin,log,\
+    "id:11000,phase:1,deny,t:urlDecode,t:normalizePathWin,log,\
     msg:'URI evasion attempt'"
 
 # START allowlist block for URI /login
