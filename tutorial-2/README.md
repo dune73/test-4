@@ -215,16 +215,22 @@ Incidentally, the order of these headers is characteristic for web servers. _Ngi
 During communication it is possible to get a somewhat more detailed view in _curl_. We use the _--trace-ascii_ command line parameter to do this:
 
 ```bash
-$> curl   http://localhost/index.html --trace-ascii -
+$> curl http://localhost/index.html --data "foo=bar" --trace-ascii -
 == Info: Hostname was NOT found in DNS cache
 == Info:   Trying 127.0.0.1...
 == Info: Connected to localhost (127.0.0.1) port 80 (#0)
 => Send header, 83 bytes (0x53)
 0000: GET /index.html HTTP/1.1
-001a: User-Agent: curl/7.35.0
 0033: Host: localhost
+001a: User-Agent: curl/7.71.1
 0044: Accept: */*
-0051: 
+0052: Content-Length: 7
+0065: Content-Type: application/x-www-form-urlencoded
+0096:
+=> Send data, 7 bytes (0x7)
+0000: foo=bar
+== Info: upload completely sent off: 7 out of 7 bytes
+== Info: Mark bundle as not supporting multiuse
 <= Recv header, 17 bytes (0x11)
 0000: HTTP/1.1 200 OK
 <= Recv header, 37 bytes (0x25)
@@ -250,7 +256,7 @@ $> curl   http://localhost/index.html --trace-ascii -
 
 _--trace-ascii_ requires a file as a parameter in order to make an _ASCII dump_ of communication in it. "-" works as a shortcut for _STDOUT_, enabling us to easily see what is being logged.
 
-Compared to _verbose_, _trace-ascii_ provides more details about the number of transferred bytes in the _request_ and _response_ phase. The request headers in the example above are thus 83 bytes. The bytes are then listed for each header in the response and overall for the body in the response: 45 bytes. This may seem like we are splitting hairs. But in fact, it can be crucial when something is missing and it is not quite certain what or where in the sequence it was delivered. Thus, it’s worth noting that 2 bytes are added to each header line. These are the CR (carriage returns) and NL (new lines) in the header lines included in the HTTP protocol. In the response body, on the other hand, only the actual content of the file is returned. This is obviously only one NL without CR here. On the third to last line (_000: <html ..._) a point comes after the greater than character This is code for the NL character in the response, which like other escape sequences is output in the form of a point.
+Compared to _verbose_, _trace-ascii_ also shows the request body and it provides more details about the number of transferred bytes in the _request_ and _response_ phase. The request headers in the example above are thus 83 bytes. The bytes are then listed for each header in the response and overall for the body in the response: 45 bytes. This may seem like we are splitting hairs. But in fact, it can be crucial when something is missing and it is not quite certain what or where in the sequence it was delivered. Thus, it’s worth noting that 2 bytes are added to each header line. These are the CR (carriage returns) and NL (new lines) in the header lines included in the HTTP protocol. In the response body, on the other hand, only the actual content of the file is returned. This is obviously only one NL without CR here. On the third to last line (_000: <html ..._) a point comes after the greater than character This is code for the NL character in the response, which like other escape sequences is output in the form of a point.
 
 ### Step 7: Working with the trace method
 

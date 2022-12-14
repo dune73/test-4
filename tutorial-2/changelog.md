@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2022-12-14: Change HTTP method of trace-ascii example to POST
 * 2018-04-13: Update title format (markdown); rewordings (Simon Studer)
 * 2017-02-25: Rewording part of the "Why are we doing this" section, get rid of AllowOverride completely
 * 2016-10-09: Fixing small issues
