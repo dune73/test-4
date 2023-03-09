@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2023-03-08: Update Apache (2.4.56), apr (1.7.2), apr-util (1.6.3)
 * 2022-11-17: Remove zlibc from list of dependencies
 * 2022-08-28: Update Apache (2.4.54)
 * 2021-11-05: Update Apache (2.4.51)
