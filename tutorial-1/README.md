@@ -34,23 +34,23 @@ Since the release of version 2.4, the Apache web server comes without two import
 Let’s start with _apr_ and download the package.
 
 ```bash
-$> wget https://www-eu.apache.org/dist/apr/apr-1.7.2.tar.bz2
+$> wget https://archive.apache.org/dist/apr/apr-1.7.0.tar.bz2
 ```
 
 We’ll now download the checksum of the source code file from Apache. We’ll verify the integrity of the source code we downloaded that way. For better security we’ll be using a secure connection for downloading. Without https this verification doesn’t make much sense. Both files, the source code and the small checksum file, should be placed together in `/usr/src/apache`. We can now verify the checksum:
 
 
 ```bash
-$> wget https://www.apache.org/dist/apr/apr-1.7.2.tar.bz2.sha256
-$> sha256sum --check apr-1.7.2.tar.bz2.sha256
-apr-1.7.2.tar.bz2: OK
+$> wget https://archive.apache.org/dist/apr/apr-1.7.0.tar.bz2.sha256
+$> sha256sum --check apr-1.7.0.tar.bz2.sha256
+apr-1.7.0.tar.bz2: OK
 ```
 
 The test should not result in any problems, _OK_. We can now continue with unpacking, pre-configuring and compiling _apr_.
 
 ```bash
-$> tar -xvjf apr-1.7.2.tar.bz2
-$> cd apr-1.7.2
+$> tar -xvjf apr-1.7.0.tar.bz2
+$> cd apr-1.7.0
 $> ./configure --prefix=/usr/local/apr/
 ```
 
@@ -97,8 +97,8 @@ Once this is successful, we'll do the same with _apr-util_.
 
 ```bash
 $> cd /usr/src/apache
-$> wget https://www-eu.apache.org/dist/apr/apr-util-1.6.3.tar.bz2
-$> wget https://www.apache.org/dist/apr/apr-util-1.6.3.tar.bz2.sha256
+$> wget https://archive.apache.org/dist/apr/apr-util-1.6.3.tar.bz2
+$> wget https://archive.apache.org/dist/apr/apr-util-1.6.3.tar.bz2.sha256
 $> sha256sum --check apr-util-1.6.3.tar.bz2.sha256
 apr-util-1.6.3.tar.bz2: OK
 $> tar -xvjf apr-util-1.6.3.tar.bz2
@@ -116,7 +116,7 @@ We’ll now download the program code from the internet. This can be done by dow
 
 ```bash
 $> cd /usr/src/apache
-$> wget https://www-eu.apache.org/dist//httpd/httpd-2.4.56.tar.bz2
+$> wget https://archive.apache.org/dist/httpd/httpd-2.4.56.tar.bz2
 ```
 
 The compressed source code is approximately 5 MB in size.
@@ -124,7 +124,7 @@ The compressed source code is approximately 5 MB in size.
 We’ll now download the checksum of the source code file from Apache. At least it’s available as a _sha1 checksum_. We’ll again be using a secure connection for better security. Without https this verification doesn’t make much sense.
 
 ```bash
-$> wget https://www.apache.org/dist/httpd/httpd-2.4.56.tar.bz2.sha256
+$> wget https://archive.apache.org/dist/httpd/httpd-2.4.56.tar.bz2.sha256
 $> sha256sum --check httpd-2.4.56.tar.bz2.sha256
 httpd-2.4.56.tar.bz2: OK
 ```
@@ -237,8 +237,8 @@ $> sudo ./bin/httpd -V
 Server version: Apache/2.4.56 (Unix)
 Server built:   March 10 2023 13:32:29
 Server's Module Magic Number: 20120211:83
-Server loaded:  APR 1.7.2, APR-UTIL 1.6.3
-Compiled using: APR 1.7.2, APR-UTIL 1.6.3
+Server loaded:  APR 1.7.0, APR-UTIL 1.6.3
+Compiled using: APR 1.7.0, APR-UTIL 1.6.3
 Architecture:   64-bit
 Server MPM
 Server compiled with....
