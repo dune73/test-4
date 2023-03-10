@@ -164,6 +164,7 @@ SecResponseBodyLimit          10000000
 
 SecPcreMatchLimit             100000
 SecPcreMatchLimitRecursion    100000
+SecRequestBodyJsonDepthLimit  16
 
 SecTmpDir                     /tmp/
 SecUploadDir                  /tmp/
@@ -326,6 +327,8 @@ The ModSecurity base configuration begins on the next line: We define the base s
 On the response side we enable body access and in turn define a limit of 10 MB. No differentiation is made here in the transfer of forms or files; all of them are files.
 
 Now comes the memory reserved for the _PCRE library_. ModSecurity documentation suggests a value of 1000 matches. But this quickly leads to problems in practice. Our base configuration with a limit of 100000 is much more robust. If problems still occur, values above 100000 are also manageable; memory requirements grow only marginally.
+
+A relatively new directive is `SecRequestBodyJsonDepthLimit` it allows you to control level of nesting that the parsing of JSON request payloads will accept. Should the payload contain more nested layers, ModSecurity will block the request with HTTP status code `400 Bad Request`. I run with 16 levels of nesting and I think this will do for most setups.
 
 ModSecurity requires three directories for data storage. We put all of them in the _tmp directory_. For productive operation this is of course the wrong place, but for the first baby steps it’s fine and it is not easy to give general recommendations for the right choice of this directory, because the local environment plays a big role.  For the aforementioned directories this concerns temporary data, a storage for file uploads that raised suspicion and finally about session data that should be retained after a server restart, 
 
