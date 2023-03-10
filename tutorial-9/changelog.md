@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2023-03-10: Added SecRequestBodyJsonDepthLimit directive
 * 2020-07-22: Fixed error in description of X-Forwarded-For
 * 2019-11-05: Typo with path in RewriteRule
 * 2019-11-04: Added env=HTTPS condition to STS header config

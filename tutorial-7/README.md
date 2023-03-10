@@ -231,6 +231,7 @@ SecResponseBodyLimit          10000000
 
 SecPcreMatchLimit             100000
 SecPcreMatchLimitRecursion    100000
+SecRequestBodyJsonDepthLimit  16
 
 SecTmpDir                     /tmp/
 SecUploadDir                  /tmp/
