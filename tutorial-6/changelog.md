@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2023-03-10: Update ModSecurity (2.9.7)
 * 2022-12-14: Front anchor for regex on recommended rule 200000 and 200001
 * 2022-12-14: Added the t:urlDecode transformation to rule 11000 in the allowlist recipe
 * 2022-11-29: Adding trailing slashes to folder names in allow-list
