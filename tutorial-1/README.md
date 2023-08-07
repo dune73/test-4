@@ -66,6 +66,7 @@ Things typically missing:
 
 And once we are at it, let's install everything else we are going to need throughout this and the following tutorials:
 
+* bzip2
 * gawk
 * libexpat1-dev
 * libpcre3-dev
