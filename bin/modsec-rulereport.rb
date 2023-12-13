@@ -69,6 +69,7 @@
 # - mockup tests of script
 # - naked call to script does not generate any output
 # - Expand metainfo support to multiple events input
+# - Expand advisory support to multiple events
 #
 # --------------------------------------------------------------------------------------
 
@@ -105,9 +106,9 @@ OUTPUT_JSON = 2
 
 RULEID_DEFAULT = 10000
 
-ADVISORY_RULES = ["911100", "920360", "920370", "920380", "920390", "920400", "920410", "920420", "920430", "920440", "920450", "920480", "949110", "949111", "959100", "980130"] # These are rules that should not be handled with a rule exclusion. The advisory has more infos.
+ADVISORY_RULES = ["911100", "920360", "920370", "920380", "920390", "920400", "920410", "920420", "920430", "920440", "920450", "920480", "949110", "949111", "959100", "980120", "980130", "980140"] # These are rules that should not be handled with a rule exclusion but with an advisory instead.
 
-TRANSPOSE_RULES = ["921180", "930120", "931130"] # These are rules, where the parameter name has to be transposed to be used in a rule exclusion
+TRANSPOSE_RULES = ["920300", "921180", "930120", "931130", "932200"] # These are rules, where the parameter name has to be transposed to be used in a rule exclusion
 
 params[:filenames] = Array.new
 params[:output_format] = OUTPUT_TEXT
@@ -130,9 +131,9 @@ Severities = {
 }
 
 class Event
-	attr_accessor :timestamp, :id, :unique_id, :ip, :msg, :data, :uri, :parameter, :orig_parameter, :hostname, :file, :line, :version, :tags
+	attr_accessor :timestamp, :id, :unique_id, :ip, :msg, :data, :uri, :parameter, :orig_parameter, :hostname, :file, :line, :version, :tags, :advisory
 
-	def initialize(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, file, line, version, tags)
+	def initialize(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, file, line, version, tags, advisory)
 		@timestamp = timestamp
 		@id = id
 		@unique_id = unique_id
@@ -147,6 +148,7 @@ class Event
 		@line = line
 		@version = version
 		@tags = tags
+                @advisory = advisory
 	end
 
 	def to_hash
@@ -183,11 +185,7 @@ def import_files(filenames, params)
 
       	  vprint("Reading file #{filename} ...", params)
 
-          advisory, myevents = read_file(file, params)
-
-          unless advisory
-            events.concat(myevents)
-          end
+          events.concat(read_file(file, params))
 
 	end
 
@@ -197,11 +195,7 @@ def import_files(filenames, params)
 
       	vprint("Reading STDIN ...", params)
 
-        advisory, myevents = read_file(STDIN, params)
-
-        unless advisory
-          events.concat(myevents)
-        end
+        events.concat(read_file(STDIN, params))
 
     end
 
@@ -213,7 +207,12 @@ def import_files(filenames, params)
     exit 1
   end
 
-  return advisory, events
+  if params[:verbose]
+    puts("Events imported:")
+    pp(events)
+  end
+
+  return events
 
 end
 
@@ -226,11 +225,11 @@ def parse_event_from_string(str, params)
 
   file = StringIO.new(str)
 
-  advisory, events =  read_file(file, params)
+  events = read_file(file, params)
 
   file.close
 
-  return advisory, events
+  return events
 
 end
 
@@ -270,7 +269,7 @@ You can do so by enabling the rule `900310` in the `crs-setup.conf` file and set
 value `tx.arg_name_length` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -285,7 +284,7 @@ You can do so by enabling the rule `900320` in the `crs-setup.conf` file and set
 value `tx.arg_length` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 
 EOF
@@ -301,7 +300,7 @@ You can do so by enabling the rule `900300` in the `crs-setup.conf` file and set
 value `tx.max_num_args` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -316,7 +315,7 @@ You can do so by enabling the rule `900330` in the `crs-setup.conf` file and set
 value `tx.total_arg_length` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -331,7 +330,7 @@ You can do so by enabling the rule `900340` in the `crs-setup.conf` file and set
 value `tx.max_file_size` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -346,7 +345,7 @@ You can do so by enabling the rule `900350` in the `crs-setup.conf` file and set
 value `tx.combined_file_sizes` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -362,7 +361,7 @@ You can do so by enabling the rule `900220` in the `crs-setup.conf` file and set
 value `tx.allowed_request_content_type` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -378,7 +377,7 @@ You can do so by enabling the rule `900230` in the `crs-setup.conf` file and set
 value `tx.allowed_http_versions` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -395,7 +394,7 @@ You can do so by enabling the rule `900240` in the `crs-setup.conf` file and set
 value `tx.restricted_extensions` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -411,7 +410,7 @@ You can do so by enabling the rule `900250` in the `crs-setup.conf` file and set
 value `tx.restricted_headers` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -428,7 +427,7 @@ You can do so by enabling the rule `900240` in the `crs-setup.conf` file and set
 value `tx.allowed_request_content_type_charset` accordingly.
 
 The rule alert examined logged the following data:
-    
+
 `#{data}`
 EOF
 
@@ -473,6 +472,20 @@ rules so you can avoid false positives and make sure the outbound anomaly score
 is low.
 EOF
 
+  elsif id == "980120"
+
+    advisory = <<EOF
+There is an alert on rule `980120`. This rule has a special role in the rule set. It
+reports the anomaly scores of the incoming request together with separate scores
+for individual attack classes.
+
+This is purely informational. This rule does not contribute to the anomaly scoring
+and it will never block.
+
+You should therefore not disable this rule. Instead you should work on different
+rules so you can avoid false positives and make sure the anomaly score is low.
+EOF
+
   elsif id == "980130"
 
     advisory = <<EOF
@@ -486,6 +499,21 @@ and it will never block.
 You should therefore not disable this rule. Instead you should work on different
 rules so you can avoid false positives and make sure the anomaly score is low.
 EOF
+
+  elsif id == "980140"
+
+    advisory = <<EOF
+There is an alert on rule `980140`. This rule has a special role in the rule set. It
+reports the anomaly scores of the outgoing responses together with an individual
+listing of scores per paranoia lecel.
+
+This is purely informational. This rule does not contribute to the anomaly scoring
+and it will never block.
+
+You should therefore not disable this rule. Instead you should work on different
+rules so you can avoid false positives and make sure the anomaly score is low.
+EOF
+
 
   elsif id == "PCRE"
 
@@ -536,8 +564,28 @@ The audit log folder is defined with the following directive:
 `SecAuditLogStorageDir <storage-folder>`
 
 The folder needs to be existing and writeable by the webserver user. You need to fix
-in order to get audit logs written. C-Rex can not support you with this.
+this in order to get audit logs written. C-Rex can not support you with this.
 EOF
+
+  elsif id == "AUDITLOGLibModSecurity3"
+
+    advisory = <<EOF
+The input you submitted contains a error pointing out that the audit log for 
+the request could not be opened:
+
+`"modsecurity_rules_file" directive Failed to open file ...`
+
+This indicates that there is a problem with the permissions of the audit log folder
+or the file itself.
+
+The audit log file is defined with the following directive:
+
+`SecAuditLog <path-to-file>`
+
+The path needs to be existing and writeable by the webserver user. You need to fix
+this in order to get audit logs written. C-Rex can not support you with this.
+EOF
+
 
 
   else 
@@ -576,10 +624,14 @@ def transpose_parameter(id, parameter, data, params)
   # Return : transposed parameter (str)
   # Remarks: none
   # Tests:   none
-  
-  dprint("Original parameter name: #{parameter}", params)
-    
-  if id == "921180"
+
+  dprint("Original parameter name: #{parameter}, id: #{id}", params)
+
+  if id == "920300"
+
+    parameter = parameter.gsub(/^REQUEST_HEADERS:User-Agent/, "REQUEST_HEADERS:Accept")
+
+  elsif id == "921180"
     # 921180 works on a TX parameter that is created in 921170.
     # There is a case to be made a true rule exclusion should therefore work
     # on 921170. However, given the alert happens on 921180, that would complicate 
@@ -591,12 +643,34 @@ def transpose_parameter(id, parameter, data, params)
     # and build the rule id based on that.
 
   elsif id == "930120"
+    # The architecture of the rule forces us to look at logdata
+    # for the parameter
+    # Interestingly, there are multiple versions of this rule around
+    # * variant 1: Has TX as parameter, needs to be transposed to var in logdata
+    # * variant 2: Everything OK
 
-    parameter = data.gsub(/^.* ARGS/, "ARGS").gsub(/: .*/, "")
+    if /^TX/ =~ parameter
+      parameter = data.gsub(/^.* ARGS/, "ARGS").gsub(/: .*/, "")
+    end
 
   elsif id == "931130"
 
     parameter = parameter.gsub(/^TX:rfi_parameter_/, "")
+
+  elsif id == "932200"
+    # 932200 in CRS up to 3.3.x does not bring any information about the original
+    # parameter in the alert message. There is nothing we can do in that context.
+    # However, in CRS v4, the rule works with a temporary variable and reports
+    # the original parameter.
+    # See https://github.com/coreruleset/coreruleset/pull/3409
+    #
+    # The transposition rule tries to extract the right parameter name.
+    # If that sticks to MATCHED_VAR if that does not work.
+
+    var = data.gsub(/^.*within /, "").gsub(/: .*/, "")
+    if (var.length > 0 and var != parameter)
+      parameter = var
+    end
 
   else
 
@@ -619,7 +693,6 @@ def read_file(file, params)
   # Remarks: none
 
   events = Array.new()
-  advisory = nil
 
   def scan_line (line, key, default, params)
     begin
@@ -628,13 +701,15 @@ def read_file(file, params)
       return default
     end
   end
+
   def scan_line_tags (line, params)
     tags = Array.new
     begin
+      dprint("Starting to parse tags.", params)
       line.split("[tag ").drop(1).each do |item|
 		if not /\[/.match(item)
 			item.gsub!(/\].*/, "").gsub!(/"/, "")
-			dprint("Identified tag #{item}", params)
+			dprint("  Identified tag #{item}", params)
 			tags << item
                 else
                 	# last tag in the list needs special treatment, we need to make sure we don't get any garbled/cut short tags
@@ -647,7 +722,7 @@ def read_file(file, params)
                         if item.length > 2 and item[-1] == "\""
                           # This is the check for the terminating quotes
 			  item.gsub!(/"/, "")
-			  dprint("Identified tag #{item}", params)
+			  dprint("  Identified tag #{item}", params)
 			  tags << item
                         end
 		end
@@ -659,154 +734,376 @@ def read_file(file, params)
     end
   end
 
+  def scan_ip (line, params)
+    # Read custom parameters: ip
+    begin
+      ip = "0.0.0.0"
+      if line.scan(/\[client ([^\]]*)\]/).length > 0
+        tuple = line.scan(/\[client ([^\]]*)\]/)[0]
+        if tuple[0]
+          ip = tuple[0]
+        end
+      elsif line.scan(/ client: ([^,]*),/).length > 0
+        tuple = line.scan(/ client: ([^,]*),/)[0]
+        if tuple[0]
+          ip = tuple[0]
+        end
+      else
+        dprint("Could not read IP address, using fallback value.", params)
+      end
+    rescue
+      dprint("Failed reading IP address, using fallback value.", params)
+      ip = "0.0.0.0"
+    end
+
+    return ip
+
+  end
+
+  def scan_timestamp (line, params)
+    # Read custom parameters: timestamp
+    begin
+      # The time stamp format proposed in the netnea tutorials is privileged. If it
+      # this does not work, we use the date library and if that fails too, we
+      # fall back to the epoch.
+      item = line.scan(/(2[0-9]{3}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6})/)
+      if item.length > 0
+        timestamp = item[0][0]
+      else
+        # DateTime.parse has a size limit of 128 bytes, we assume the date is likely to be in the first 128 bytes
+        timestamp = DateTime.parse(line[0,128]).strftime("%Y-%m-%d %H:%M:%S")
+      end
+    rescue
+      dprint("Could not read timestamp address, using fallback value.", params)
+      timestamp = "1970-01-01 00:00:00.000000"
+    end
+
+    return timestamp
+
+  end
+
+  def determine_parameter (id, orig_parameter, data, params)
+
+    if  TRANSPOSE_RULES.grep(id).count == 1
+      # If the rule is on the list of transpose rules, then
+      # we have to transpose the parameter name in a certain 
+      # way depending on the rule in question. The transposed
+      # parameter will replace the parameter and the original
+      # parameter will be stored as original_parameter.
+
+      dprint("Alerts points to rule where parameter has to be transposed. Executing transposition.", params)
+      parameter = transpose_parameter(id, orig_parameter, data, params)
+
+    else
+
+      parameter = orig_parameter
+
+    end
+
+    return parameter
+
+  end
+
+  def parse_parameter (line)
+    begin
+
+      if /(ModSecurity:|\]\[\d\]) (Warning.|Access denied with)/.match(line) or 
+         /^Message: (Warning. Matched|Access denied with)/.match(line) or
+         /^Matched \"Operator/.match(line)
+
+            if /(Pattern match|Matched phrase)/.match(line)
+                      # Operators: pm, pmFromFile, strmatch, rx
+                      # example: standard operator results in:  ModSecurity: Warning. Pattern match "^[\\\\d.:]+$" at REQUEST_HEADERS:Host.
+                      orig_parameter = line.scan(/ (at|against) "?(.*?)"?( required)?\.? \[file \"/)[0][1]
+  
+            elsif /detected (SQLi|XSS) using libinjection/.match(line)
+                      # Operators: detectSQLi, detectXSS
+                      # example: ModSecurity: Warning. detected SQLi using libinjection with fingerprint 's&1' [file ...  [data "Matched Data:  found within ARGS:sqli: ' or 1=1"] 
+                      # The detectSQLi / detectXSS operator do not report the affected parameter by itself. Instead we need to fetch the parameter out of the logdata field. 
+                      # This only works when the logdata format is consistent.
+                      # Right now, we use the format defined in CRS3 rule 942100.
+                      orig_parameter = line.scan(/\[data "Matched Data:.*found within ([^ ]*): /)[0][0]
+  
+            elsif /String match/.match(line)
+                      # Operators: beginsWith, contains, containsWord, endsWith, streq, within
+                      # example: ModSecurity: Warning. String match "/" at REQUEST_URI. [file ...] 
+                      # example: ModSecurity: Warning. String match within "GET POST" at REQUEST_METHOD. [file ...]
+                      orig_parameter = line.scan(/String match (within )?".*" at (.*?)\.? \[file /)[0][1]
+  
+            elsif /Operator [A-Z][A-Z] matched/.match(line)
+                      # Operators: eq, ge, gt, le, lt
+                      # example: ModSecurity: Warning. Operator EQ matched 1 at ARGS. [file ...]
+                      orig_parameter = line.scan(/Operator [A-Z][A-Z] matched .* at ([^ ]*)\.? \[file /)[0][0].gsub(/\.$/, "")
+  
+            elsif /IPmatch(FromFile)?: ".*" matched at/.match(line)
+                      # Operators: ipMatch, ipMatchFromFile
+                      # example: ModSecurity: Warning. IPmatch: "127.0.0.1" matched at REMOTE_ADDR.
+                      orig_parameter = line.scan(/IPmatch(FromFile)?: "[^"]*" matched at ([^ ]*)\.? \[file /)[0][1].gsub(/\.$/, "")
+  
+            elsif /Unconditional match in SecAction/.match(line)
+                      # Operators: unconditionalMatch
+                      # example: ModSecurity: Warning. Unconditional match in SecAction. [file ...]
+                      # The unconditionalMatch operator does not report the parameter that was involved in the rule
+                      # One would need to get it out of the logdata entry of the alert, but there is no
+                      # standard way of configuring that, so there is no convention to base ourselves upon.
+                      # Given the use of @unconditionalMatch is very rare,
+                      # we set the parameter to "UNKNOWN"
+                      orig_parameter = "UNKNOWN"
+  
+            elsif /Found \d+ byte\(s\) in .* outside range:/.match(line)
+                      # Operators: validateByteRange
+                      # example: ModSecurity: Warning. Found 9 byte(s) in REMOTE_ADDR outside range: 0. [file ... ]
+                      orig_parameter = line.scan(/Found \d+ byte\(s\) in ([^ ]*) outside range: /)[0][0]
+                      
+            elsif /Invalid UTF-8 encoding/.match(line)
+                      # Operators: validateByteRange
+                      # example: ModSecurity: Warning. Invalid UTF-8 encoding: overlong character detected at ARGS:foo
+                      orig_parameter = line.scan(/overlong character detected at ([^ ]*)\. \[offset \"[0-9]\"\] \[file /)[0][0]
+  
+            elsif /Match of ".*" against ".*" required\./.match(line)
+                      # Operators: All negated operators (-> "!@xxx ...")
+                      # example: ModSecurity: Warning. Match of "rx ^(abc)$" against "ARGS:a" required. [file
+                      orig_parameter = line.scan(/ against "([^ ]*)" required\.? \[file /)[0][0]
+  
+            elsif /ModSecurity: Warning\. Matched "Operator /.match(line)
+                      # libModSecurity 3
+                      # example: ModSecurity: Warning. Matched "Operator `ValidateByteRange' with parameter `38,44-46,48-58,61,65-90,95,97-122' against variable `ARGS:test' (Value: `/etc/passwd' ) [file                    
+                      orig_parameter = line.scan(/ against variable `([^ ]*)' \(Value: `/)[0][0]
+            elsif /ModSecurity: Access denied with (Warning|code [45].*)\. Matched "Operator /.match(line)
+                      # libModSecurity 3
+                      # example: ModSecurity: Warning. Matched "Operator `ValidateByteRange' with parameter `38,44-46,48-58,61,65-90,95,97-122' against variable `ARGS:test' (Value: `/etc/passwd' ) [file                    
+                      # example: ModSecurity: Access denied with code 403 (phase 2). Matched "Operator `Ge' with parameter `5' against variable `TX:ANOMALY_SCORE' (Value: `15' )
+                      orig_parameter = line.scan(/ against variable `([^ ]*)' \(Value: `/)[0][0]
+            elsif /^Matched "Operator /.match(line)
+                      orig_parameter = line.scan(/ against variable `([^ ]*)' \(Value: `/)[0][0]
+            elsif /ModSecurity: Warning\. Invalid URL Encoding: /.match(line)
+              orig_parameter = line.scan(/ at ([^ ]*)\. \[/)[0][0]
+            else
+                  $stderr.puts "ERROR: Could not interpret alert message. Ignoring message: #{line}"
+            end
+      end
+    rescue => detail
+      puts_error("Error parsing alert message. This is fatal. Bailing out. Alert message: #{line}", detail)
+      exit 1
+    end
+  end
+
+  def get_advisory (id, data, params)
+
+    if  ADVISORY_RULES.grep(id).count == 1
+      # If the rule is on the list of advisory rules, then
+      # don't do a rule exclusion, but reconfigure CRS.
+      # The advisory will explain how to do this for 
+      # every individual rule.
+
+      dprint("Advisory rule identified, fetching text.", params)
+      advisory = get_advisory_ruleid(id, data, params)
+
+    end
+
+  end
+
+  def scan_parameter (line, id, params, events, timestamp, unique_id, ip, msg, data, uri, hostname, eventfile, eventline, version, tags)
+    # Parse the alert message to determine need for Advisory and to read parameter in alert
+    
+    if not /^Apache-Error:/.match(line)
+      # ModSecurity 2.9 audit log carries Apache-Error messages that essentially duplicate
+      # the ModSecurity alert message in the same log. We ignore the former to avoid
+      # duplicates. The ModSecurity alert message does not carry the unique_id and the
+      # hostname, though, so maybe better switch to the Apache-Error message.
+      if  /ModSecurity: (Warning|Access denied.*)\. /.match(line) or 
+          /\]\[\d\] (Warning. Matched|Access denied with code)/.match(line) or 
+          /^Message: (Warning\. [A-Z]|Access denied with)/.match(line)
+
+        advisory = get_advisory(id, data, params)
+
+        orig_parameter = parse_parameter(line)
+
+        dprint("Line parsed successfully.", params)
+
+        parameter = determine_parameter(id, orig_parameter, data, params)
+
+        dprint("Finished parsing line. Adding event.", params)
+        events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory)
+
+      elsif /- Execution error - PCRE limits exceeded /.match(line)
+        # e.g. ModSecurity: Rule 55cff957e738 [id "..."][file "/....conf"][line "471"] - Execution error - PCRE limits exceeded (-8): (null). 
+
+        dprint("PCRE error identified.", params)
+        advisory = get_advisory_ruleid("PCRE", data, params)
+
+        dprint("Finished parsing line. Adding event.", params)
+        events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory)
+
+      elsif /Audit log: Failed to create subdirectories: /.match(line)
+        # e.g. ModSecurity: Audit log: Failed to create subdirectories: /.../20200121-1409 (Permission denied)
+        
+        dprint("Subdirectory creation error identified.", params)
+        advisory = get_advisory_ruleid("AUDITLOG", data, params)
+
+        dprint("Finished parsing line. Adding event.", params)
+        events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory)
+
+      elsif /modsecurity_rules_file" directive Failed to/.match(line)
+        # libModSecurity3, typically failing to open audit log file
+        # example: "modsecurity_rules_file" directive Failed to open file: /root/logs/modsec_audit.log in /opt/nginx/...
+
+        dprint("Audit log open error identified.", params)
+        advisory = get_advisory_ruleid("AUDITLOGLibModSecurity3", data, params)
+
+        dprint("Finished parsing line. Adding event.", params)
+        events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory)
+      end
+
+    end
+
+    return advisory, parameter, orig_parameter, events
+
+  end
+
+  def dprint_event (timestamp, id, unique_id, ip, msg, data, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory, params)
+
+    if params[:debug]
+      dprint("Event that has been added:", params)
+      dprint(" timestamp: #{timestamp}", params)
+      dprint(" id: #{id}", params)
+      dprint(" unique_id: #{unique_id}", params)
+      dprint(" ip: #{ip}", params)
+      dprint(" msg: #{msg}", params)
+      dprint(" data: #{data}", params)
+      dprint(" parameter: #{parameter}", params)
+      dprint(" orig_parameter: #{orig_parameter}", params)
+      dprint(" hostname: #{hostname}", params)
+      dprint(" eventfile: #{eventfile}", params)
+      dprint(" eventline: #{eventline}", params)
+      dprint(" version: #{version}", params)
+      dprint(" tags: #{tags}", params)
+      dprint(" advisory: #{advisory}", params)
+    end
+
+  end
+
+  def scan_standard_parameters (item, params)
+    # Read standard parameters
+    id = scan_line(item, "id", "0", params)
+    unique_id = scan_line(item, "unique_id", "no-id-found", params)
+    msg = scan_line(item, "msg", "none", params)
+    data = scan_line(item, "data", "none", params)
+    uri = scan_line(item, "uri", "/", params)
+    hostname = scan_line(item, "hostname", "unknown", params)
+    eventfile = scan_line(item, "file", "none", params)
+    eventline = scan_line(item, "line", "none", params)
+    version = scan_line(item, "ver", "none", params)
+    tags = scan_line_tags(item, params)
+
+    return id, unique_id, msg, data, uri, hostname, eventfile, eventline, version, tags
+
+  end
 
   while ! file.eof?
 	line = file.readline
-	if /ModSecurity: (Warning|Access denied.*)\. /.match(line)
 
-	  # standard parameters
-          id = scan_line(line, "id", "0", params)
-          unique_id = scan_line(line, "unique_id", "no-id-found", params)
-          msg = scan_line(line, "msg", "none", params)
-	  data = scan_line(line, "data", "none", params)
-	  uri = scan_line(line, "uri", "/", params)
-	  hostname = scan_line(line, "hostname", "unknown", params)
-	  eventfile = scan_line(line, "file", "none", params)
-	  eventline = scan_line(line, "line", "none", params)
-	  version = scan_line(line, "ver", "none", params)
-	  tags = scan_line_tags(line, params)
+	dprint("Line read: #{line}", params)
 
-	  # custom parameters
-	  begin
-	    ip = line.scan(/\[client ([^\]]*)\]/)[0][0]
-	  rescue
-	    ip = "0.0.0.0"
-	  end
+	if /^\w*#/.match(line)
+            dprint("Line not relevant. Skipping.", params)
+            next
+        end
 
-	  begin
-            # The time stamp format proposed in the netnea tutorials is privileged. If it
-            # this does not work, we use the date library and if that fails too, we
-            # fall back to the epoch.
-	    item = line.scan(/(2[0-9]{3}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{6})/)
-            if item.length > 0
-              timestamp = item[0][0]
+        if /^{"transaction":/.match(line)
+            dprint("Assuming JSON input after test", params)
+
+            hash = JSON.parse(line)
+
+            if hash.key?("audit_data")
+              # JSON ModSec v2
+              dprint("Assuming ModSecurity v2 audit input", params)
+              hash["audit_data"]["error_messages"].each do |event|
+                # For ModSec 2.9 JSON audit log format, we take the apache error log that
+                # is copied into the audit log. It duplicates the ModSecurity message that
+                # is also printed in this log, but on top of the latter, it also brings the
+                # hostname and the unique_id for the alert. Unfortunately it also brings
+                # a 2nd iteration of the item "file" pointing to apache_util.c.
+                #
+                # Notice how a single JSON line / record can carry multiple alert events,
+                # so we loop over the "error_messages".
+
+                id, unique_id, msg, data, uri, hostname, eventfile, eventline, version, tags = scan_standard_parameters(event, params)
+                dprint("Done parsing standard parameters", params)
+                ip = scan_ip(line, params)
+                if not hash["transaction"]["time"].nil?
+                  timestamp = hash["transaction"]["time"]
+                else
+                  # This will probably result in the use of the fallback value 1970-01-01
+                  timestamp = scan_timestamp(line, params)
+                end
+
+                advisory, parameter, orig_parameter, events = scan_parameter(event, id, params, events, timestamp, unique_id, ip, msg, data, uri, hostname, eventfile, eventline, version, tags)
+
+                if params[:debug] 
+                  dprint_event(timestamp, id, unique_id, ip, msg, data, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory, params)
+                end
+
+              end
+            elsif hash["transaction"].key?("messages")
+              # JSON ModSec v3
+              # This is a fully split json format that we can more or less map 1:1
+              #
+              dprint("Assuming ModSecurity v3 JSON input", params)
+              hash["transaction"]["messages"].each do |event|
+              
+                  timestamp = hash["transaction"]["time_stamp"]
+                  id = event["details"]["ruleId"]
+                  unique_id = hash["transaction"]["unique_id"]
+                  ip = hash["transaction"]["client_ip"]
+                  uri = hash["transaction"]["request"]["uri"]
+                  msg = event["message"]
+                  data = event["details"]["data"]
+                  eventfile = event["details"]["file"]
+                  eventline = event["details"]["lineNumber"]
+                  version = event["details"]["ver"]
+                  tags = event["details"]["tags"]
+                  hostname = "Unknown (ModSecurity v3 JSON log format does not report hostname)"
+
+                  orig_parameter = parse_parameter(event["details"]["match"])
+                  parameter = determine_parameter(id, orig_parameter, data, params)
+
+                  advisory = get_advisory(id, data, params)
+
+                  if params[:debug] 
+                    dprint_event(timestamp, id, unique_id, ip, msg, data, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory, params)
+                  end
+
+                  events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory)
+
+              end
+
             else
-              timestamp = DateTime.parse(line).to_s
+              # unknown JSON format
+              $stderr.puts "Logline is supposedly JSON, but could not be identified. Ignoring line.", line
             end
-          rescue
-            timestamp = "1970-01-01 00:00:00.000000"
-	  end
 
-          if  ADVISORY_RULES.grep(id).count == 1
-            # If the rule is on the list of advisory rules, then
-            # don't do a rule exclusion, but reconfigure CRS.
-            # The advisory will explain how to do this for 
-            # every individual rule.
+        else
+            dprint("Assuming non-JSON input", params)
 
-            advisory = get_advisory_ruleid(id, data, params)
+            id, unique_id, msg, data, uri, hostname, eventfile, eventline, version, tags = scan_standard_parameters(line, params)
+            dprint("Done parsing standard parameters", params)
+            ip = scan_ip(line, params)
+            timestamp = scan_timestamp(line, params)
 
-          end
+            advisory, parameter, orig_parameter, events = scan_parameter(line, id, params, events, timestamp, unique_id, ip, msg, data, uri, hostname, eventfile, eventline, version, tags)
 
-	  begin
-
-	  if /ModSecurity: (Warning.|Access denied with.*) (Pattern match|Matched phrase)/.match(line)
-		    # Operators: pm, pmFromFile, strmatch, rx
-	    	    # example: standard operator results in:  ModSecurity: Warning. Pattern match "^[\\\\d.:]+$" at REQUEST_HEADERS:Host.
-		    orig_parameter = line.scan(/ (at|against) "?(.*?)"?( required)?\. \[file \"/)[0][1]
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) detected (SQLi|XSS) using libinjection/.match(line)
-		    # Operators: detectSQLi, detectXSS
-	    	    # example: ModSecurity: Warning. detected SQLi using libinjection with fingerprint 's&1' [file ...  [data "Matched Data:  found within ARGS:sqli: ' or 1=1"] 
-		    # The detectSQLi / detectXSS operator do not report the affected parameter by itself. Instead we need to fetch the parameter out of the logdata field. 
-		    # This only works when the logdata format is consistent.
-		    # Right now, we use the format defined in CRS3 rule 942100.
-		    orig_parameter = line.scan(/\[data "Matched Data:.*found within ([^ ]*): /)[0][0]
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) String match/.match(line)
-		    # Operators: beginsWith, contains, containsWord, endsWith, streq, within
-	    	    # example: ModSecurity: Warning. String match "/" at REQUEST_URI. [file ...] 
-	    	    # example: ModSecurity: Warning. String match within "GET POST" at REQUEST_METHOD. [file ...]
-                    orig_parameter = line.scan(/String match (within )?".*" at (.*?)\. \[file /)[0][1]
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) Operator [A-Z][A-Z] matched/.match(line)
-		    # Operators: eq, ge, gt, le, lt
-	    	    # example: ModSecurity: Warning. Operator EQ matched 1 at ARGS. [file ...]
-		    orig_parameter = line.scan(/Operator [A-Z][A-Z] matched .* at ([^ ]*)\. \[file /)[0][0]
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) IPmatch(FromFile)?: ".*" matched at/.match(line)
-		    # Operators: ipMatch, ipMatchFromFile
-	    	    # example: ModSecurity: Warning. IPmatch: "127.0.0.1" matched at REMOTE_ADDR.
-		    orig_parameter = line.scan(/IPmatch(FromFile)?: "[^"]*" matched at ([^ ]*)\. \[file /)[0][1]
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) Unconditional match in SecAction/.match(line)
-		    # Operators: unconditionalMatch
-	    	    # example: ModSecurity: Warning. Unconditional match in SecAction. [file ...]
-		    # The unconditionalMatch operator does not report the parameter that was involved in the rule
-		    # One would need to get it out of the logdata entry of the alert, but there is no
-		    # standard way of configuring that, so there is no convention to base ourselves upon.
-		    # Given the use of @unconditionalMatch is very rare,
-		    # we set the parameter to "UNKNOWN"
-		    orig_parameter = "UNKNOWN"
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) Found \d+ byte\(s\) in .* outside range:/.match(line)
-		    # Operators: validateByteRange
-	    	    # example: ModSecurity: Warning. Found 9 byte(s) in REMOTE_ADDR outside range: 0. [file ... ]
-		    orig_parameter = line.scan(/Found \d+ byte\(s\) in ([^ ]*) outside range: /)[0][0]
-                    
-	  elsif /ModSecurity: (Warning.|Access denied with.*) Invalid UTF-8 encoding/.match(line)
-		    # Operators: validateByteRange
-	    	    # example: ModSecurity: Warning. Invalid UTF-8 encoding: overlong character detected at ARGS:foo
-                    orig_parameter = line.scan(/overlong character detected at ([^ ]*)\. \[offset \"[0-9]\"\] \[file /)[0][0]
-
-	  elsif /ModSecurity: (Warning.|Access denied with.*) Match of ".*" against ".*" required\./.match(line)
-		    # Operators: All negated operators (-> "!@xxx ...")
-	    	    # example: ModSecurity: Warning. Match of "rx ^(abc)$" against "ARGS:a" required. [file
-		    orig_parameter = line.scan(/ against "([^ ]*)" required\. \[file /)[0][0]
-
-	  else
-  		$stderr.puts "ERROR: Could not interpret alert message. Ignoring message: #{line}"
-
-	  end
-	  rescue => detail
-            puts_error("Error parsing alert message. This is fatal. Bailing out. Alert message: #{line}", detail)
-	    exit 1
-	  end
-
-          if  TRANSPOSE_RULES.grep(id).count == 1
-            # If the rule is on the list of transpose rules, then
-            # we have to transpose the parameter name in a certain 
-            # way depending on the rule in question. The transposed
-            # parameter will replace the parameter and the original
-            # parameter will be stored as original_parameter.
-
-            parameter = transpose_parameter(id, orig_parameter, data, params)
-
-          else
-
-            parameter = orig_parameter
-
-          end
-
-	  events << Event.new(timestamp, id, unique_id, ip, msg, data, uri, parameter, orig_parameter, hostname, eventfile, eventline, version, tags)
-
-        elsif /- Execution error - PCRE limits exceeded /.match(line)
-          # e.g. ModSecurity: Rule 55cff957e738 [id "..."][file "/....conf"][line "471"] - Execution error - PCRE limits exceeded (-8): (null). 
-
-          advisory = get_advisory_ruleid("PCRE", data, params)
-
-        elsif /Audit log: Failed to create subdirectories: /.match(line)
-          # e.g. ModSecurity: Audit log: Failed to create subdirectories: /.../20200121-1409 (Permission denied)
-          
-          advisory = get_advisory_ruleid("AUDITLOG", data, params)
+            if params[:debug] 
+              dprint_event(timestamp, id, unique_id, ip, msg, data, parameter, orig_parameter, hostname, eventfile, eventline, version, tags, advisory, params)
+            end
 
         end
+
   end
 
-  if advisory && params[:output_format] == OUTPUT_JSON
-    advisory = { type: "advisory", advisory: advisory.rstrip, parsed_event: events[-1]&.to_hash }.to_json
-  end
+  dprint("Finished reading input.", params)
 
-  return advisory, events
+  return events
 	
 end
 
@@ -841,10 +1138,14 @@ def build_parameter_list(id, events)
 	parameters = Array.new
 	events.select{|h| h.id == id }.each do |h|
 		if parameters.grep(h.parameter).length == 0 
+                  if not h.parameter.nil?
+                        # not quite sure why we can end up with a nil parameter here, but it happens
 			parameters << h.parameter
+                  end
 		end
 	end
-	parameters.sort!{|x,y| x <=> y }
+
+  	parameters.sort!{|x,y| x <=> y }
 
 	return parameters
 end
@@ -1225,96 +1526,138 @@ def display_report(events, params)
   vprint("Displaying report ...", params)
 
   ids = Array.new
-  dprint("Building list of relevant ids (that is the ids we will covering, this is not the same as the list of events):", params)
+  extids = Array.new
+  dprint("Building list of relevant ids (that is the ids we will be displaying, this is not the same as the list of events):", params)
   events.each do |event|
-		if ids.grep(event.id).length == 0 && 
-			( event.id != "981176" && event.id != "981202" && event.id != "981203" && event.id != "981204" && event.id != "981205" && event.id != "949110" && event.id != "959100" && event.id != "980100" && event.id != "980110" && event.id != "980120" && event.id != "980130" && event.id != "980140") 
+    # only add id once for text output, but as many times as present for JSON
+		if (ids.grep(event.id).length == 0 ||  params[:output_format] == OUTPUT_JSON) && 
+			( event.id != "981176" && event.id != "981202" && event.id != "981203" && event.id != "981204" && event.id != "981205" && event.id != "980100" && event.id != "980110") 
 			# 981203/4/5 are the rules checking anomaly score in the end on CRS2. Ignoring those
-			# 949110, 959100 and 980100ff are the rules checking anomaly score in the end on CRS3. Ignoring those
+			# 980100ff are the rules checking anomaly score in the end on CRS3. Ignoring those
+			# FIXME: They should be handled by advisories
 			dprint("  Adding event id #{event.id}", params)
 			ids << event.id
+			extids << { :id => event.id, :timestamp => event.timestamp }
 		else
 			# id is already part of id list
 			dprint("  Ignoring event id #{event.id}", params)
 		end
   end
-  ids.sort!{|a,b| a <=> b }
   
-  ids.each do |id|
-        dprint("\nLoop over event ids (id = #{id}):", params)
-	event = events.find {|e| e.id == id }
-	len = events.select{|e| e.id == id }.length
-
-	case params[:sr]
-	when MODE_STARTTIME
-		case params[:rt] 
-		when RTMODE_RULE
-			case params[:ruleselector]
-			when BY_ID
-			    	# SecRuleRemoveById
-
-				str += display_rule_exclusion_startup_rule_byid(id, event, events, params)
-
-			when BY_TAG
-				# SecRuleRemoveByTag"
-
-				str += display_rule_exclusion_startup_rule_bytag(id, event, events, params)
-
-			end
-
-		when RTMODE_TARGET
-			case params[:ruleselector]
-			when BY_ID
-				# SecRuleUpdateTargetById
-
-				str += display_rule_exclusion_startup_target_byid(id, event, events, params)
-
-			when BY_TAG
-				# SecRuleUpdateTargetByTag
-
-				str += display_rule_exclusion_startup_target_bytag(id, event, events, params)
-
-			end
-		end
-	when MODE_RUNTIME
-		case params[:rt] 
-		when RTMODE_RULE
-			case params[:ruleselector]
-			when BY_ID
-				# SecRule ... ctl:ruleRemoveById
-
-				str += display_rule_exclusion_runtime_rule_byid(id, event, events, params)
-
-			when BY_TAG
-				
-				# SecRule .... ctl:ruleRemoveByTag
-
-				str += display_rule_exclusion_runtime_rule_bytag(id, event, events, params)
-
-			end
-
-		when RTMODE_TARGET
-			case params[:ruleselector]
-			when BY_ID
-				# SecRule ... ctl:ruleRemoveTargetById
-
-				str += display_rule_exclusion_runtime_target_byid(id, event, events, params)
-
-			when BY_TAG
-				# SecRule ... ctl:ruleRemoveTargetByTag
-
-				str += display_rule_exclusion_runtime_target_bytag(id, event, events, params)
-
-			end
-		end
-	end
+  if params[:output_format] == OUTPUT_TEXT
+    nil 
+  elsif params[:output_format] == OUTPUT_JSON
+    str += "{\"items\":["
+  else
+    puts_error("Output format unknown. This is fatal. Aborting.")
+    exit 1
   end
+
+  extids.each do |ext|
+        id = ext[:id]
+        dprint("\nLoop over event ids (id = #{id}):", params)
+        event = events.find {|e| e.id == id and e.timestamp = ext[:timestamp]}
+
+        
+        unless event.advisory.nil?
+
+          if params[:output_format] == OUTPUT_JSON
+            if str[-1] == "}"
+              str += ","
+            end
+            str += { type: "advisory", parsed_event: event.to_hash }.to_json
+          else
+            str += event.advisory
+          end
+
+        else
+
+          mystr = ""
+          case params[:sr]
+          when MODE_STARTTIME
+    	      case params[:rt] 
+    	      when RTMODE_RULE
+    		      case params[:ruleselector]
+    		      when BY_ID
+    			      # SecRuleRemoveById
+    
+    			      mystr += display_rule_exclusion_startup_rule_byid(id, event, events, params)
+    
+    		      when BY_TAG
+    			      # SecRuleRemoveByTag"
+    
+    			      mystr += display_rule_exclusion_startup_rule_bytag(id, event, events, params)
+    
+    		      end
+    
+    	      when RTMODE_TARGET
+    		      case params[:ruleselector]
+    		      when BY_ID
+    			      # SecRuleUpdateTargetById
+    
+    			      mystr += display_rule_exclusion_startup_target_byid(id, event, events, params)
+    
+    		      when BY_TAG
+    			      # SecRuleUpdateTargetByTag
+    
+    			      mystr += display_rule_exclusion_startup_target_bytag(id, event, events, params)
+    
+    		      end
+    	      end
+          when MODE_RUNTIME
+    	      case params[:rt] 
+    	      when RTMODE_RULE
+    		      case params[:ruleselector]
+    		      when BY_ID
+    			      # SecRule ... ctl:ruleRemoveById
+    
+    			      mystr += display_rule_exclusion_runtime_rule_byid(id, event, events, params)
+    
+    		      when BY_TAG
+    			      
+    			      # SecRule .... ctl:ruleRemoveByTag
+    
+    			      mystr += display_rule_exclusion_runtime_rule_bytag(id, event, events, params)
+    
+    		      end
+    
+    	      when RTMODE_TARGET
+    		      case params[:ruleselector]
+    		      when BY_ID
+    			      # SecRule ... ctl:ruleRemoveTargetById
+    
+    			      mystr += display_rule_exclusion_runtime_target_byid(id, event, events, params)
+    
+    		      when BY_TAG
+    			      # SecRule ... ctl:ruleRemoveTargetByTag
+    
+    			      mystr += display_rule_exclusion_runtime_target_bytag(id, event, events, params)
+    
+    		      end
+    	      end
+          end
+
+          if params[:output_format] == OUTPUT_TEXT
+            str += mystr
+          elsif params[:output_format] == OUTPUT_JSON
+            if str[-1] == "}"
+              str += ","
+            end
+            str += { type: "exclusion", exclusion: mystr.rstrip, parsed_event: event.to_hash }.to_json
+          end
+
+      end
+
+  end
+
+  
 
   if params[:output_format] == OUTPUT_TEXT
     nil 
   elsif params[:output_format] == OUTPUT_JSON
-    hashes = events.collect{ |e| e.to_hash }
-    str = { type: "exclusion", exclusion: str.rstrip, parsed_event: hashes[0] }.to_json
+    str += "]}"
+    # hashes = events.collect{ |e| e.to_hash }
+    # str = { type: "exclusion", exclusion: str.rstrip, parsed_event: hashes[0] }.to_json
   else
     puts_error("Output format unknown. This is fatal. Aborting.")
     exit 1
@@ -1520,19 +1863,21 @@ def dump_parameters(params)
   # Return : none
   # Remarks: none
   
-  str = ""
-  str += "Parameter overview"
-  str += "------------------"
-  str += "verbose    : #{params[:verbose]}"
-  str += "debug      : #{params[:debug]}"
+  str = "\n"
+  str += "Parameter overview\n"
+  str += "------------------\n"
+  str += "verbose    : #{params[:verbose]}\n"
+  str += "debug      : #{params[:debug]}\n"
   unless check_stdin()
-  	str += "files           : #{params[:filenames].each do |x| x ; end}"
+  	str += "files           : #{params[:filenames].each do |x| x ; end}\n"
   else
-  	str += "files      : [STDIN]"
-  	str += "startup/runtime : #{params[:sr]}"
-  	str += "rule/target     : #{params[:rt]}"
-  	str += "byid/tag/msg    : #{params[:ruleselector]}"
+  	str += "files      : [STDIN]\n"
+  	str += "startup/runtime : #{params[:sr]}\n"
+  	str += "rule/target     : #{params[:rt]}\n"
+  	str += "byid/tag/msg    : #{params[:ruleselector]}\n"
+  	str += "Output format   : #{params[:output_format]}\n"
   end
+  str += "\n\n"
 
   return str
 
@@ -1808,7 +2153,7 @@ rescue => detail
   exit 1
 end
 
-	vprint("Starting parameter checking", params)
+vprint("Starting parameter checking.", params)
 
 	exit 1 if (check_parameters(params))
 
@@ -1816,19 +2161,18 @@ end
 
         exit 1 if err != 0
 
-	puts dump_parameters(params) if params[:verbose]
+	puts dump_parameters(params) if params[:verbose] or params[:debug]
 
-	vprint("Starting main program", params)
+        vprint("Starting main program.", params)
 
-	advisory, events = import_files(params[:filenames], params)
+	events = import_files(params[:filenames], params)
 
-        if advisory
-          puts advisory
-        else
-	  puts display_report(events, params)
-        end
+        vprint("Starting display routine.", params)
+
+	puts display_report(events, params)
 
 	vprint("Finishing main program. Bailing out.", params)
+
 end
 
 if __FILE__==$0
