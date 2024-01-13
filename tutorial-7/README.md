@@ -24,32 +24,32 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 
 ```
 $> cd /apache/conf
-$> wget https://github.com/coreruleset/coreruleset/archive/v3.3.4.tar.gz
-$> tar -xvzf v3.3.4.tar.gz
-coreruleset-3.3.4
-coreruleset-3.3.4/
-coreruleset-3.3.4/.github/
-coreruleset-3.3.4/.github/ISSUE_TEMPLATE.md
-coreruleset-3.3.4/.gitignore
-coreruleset-3.3.4/.gitmodules
-coreruleset-3.3.4/.travis.yml
-coreruleset-3.3.4/CHANGES
-coreruleset-3.3.4/IDNUMBERING
-coreruleset-3.3.4/INSTALL
-coreruleset-3.3.4/KNOWN_BUGS
-coreruleset-3.3.4/LICENSE
-coreruleset-3.3.4/README.md
-coreruleset-3.3.4/crs-setup.conf.example
-coreruleset-3.3.4/documentation/
-coreruleset-3.3.4/documentation/OWASP-CRS-Documentation/
-coreruleset-3.3.4/documentation/README
+$> wget https://github.com/coreruleset/coreruleset/archive/v3.3.5.tar.gz
+$> tar -xvzf v3.3.5.tar.gz
+coreruleset-3.3.5
+coreruleset-3.3.5/
+coreruleset-3.3.5/.github/
+coreruleset-3.3.5/.github/ISSUE_TEMPLATE.md
+coreruleset-3.3.5/.gitignore
+coreruleset-3.3.5/.gitmodules
+coreruleset-3.3.5/.travis.yml
+coreruleset-3.3.5/CHANGES
+coreruleset-3.3.5/IDNUMBERING
+coreruleset-3.3.5/INSTALL
+coreruleset-3.3.5/KNOWN_BUGS
+coreruleset-3.3.5/LICENSE
+coreruleset-3.3.5/README.md
+coreruleset-3.3.5/crs-setup.conf.example
+coreruleset-3.3.5/documentation/
+coreruleset-3.3.5/documentation/OWASP-CRS-Documentation/
+coreruleset-3.3.5/documentation/README
 ...
-$> ln -s coreruleset-3.3.4 /apache/conf/crs
+$> ln -s coreruleset-3.3.5 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
-$> rm v3.3.4.tar.gz
+$> rm v3.3.5.tar.gz
 ```
 
-This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-3.3.4`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
+This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-3.3.5`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
 
 The setup file allows us to tweak many different settings. It is worth a look - if only to see what is included. However, we are OK with the default settings and will not touch the file: We just make sure it is available under the new filename `crs-setup.conf`. Then we can continue to update the configuration to include the rules files.
 
