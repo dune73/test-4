@@ -76,7 +76,7 @@ function wait_process_disappears() {
 
 VERBOSE=0
 
-AP_CONFS_PATTERN="/etc/apache2/apache2.conf /apache/conf/httpd.conf_* /opt/apache*/conf/httpd.conf_*"
+AP_CONFS_PATTERN="/etc/apache2/apache2.conf /apache/conf/httpd.conf_* /opt/apache*/conf/httpd.conf_* /apache/conf/httpd.conf"
 AP_CONF_FILE=$(ls -tr $AP_CONFS_PATTERN 2>/dev/null | tail -1)
 
 if [ ! -f $AP_CONF_FILE ]; then
@@ -159,14 +159,14 @@ fi
 # -----------------------------------------------------------------------
 
 while [ 1 ]; do
-	echo
 	if [ -f $AP_PID_FILE ]; then
 		
 		ps ax | grep -v " grep " | grep -q $(cat $AP_PID_FILE) 
 		
 		if [ $? -eq 0 ]; then
 
-			echo -n "Stopping active apache process ... "
+			echo -e "\n"
+			echo -ne "\rStopping active apache process ... "
 
 			sudo kill -TERM $(cat $AP_PID_FILE)
 
@@ -179,14 +179,15 @@ while [ 1 ]; do
 	# clean up semaphores
 	sudo ipcs -s | grep $AP_USER | awk '{ print $2 }' | xargs -n 1 sudo ipcrm sem 2>/dev/null >/dev/null
 
-	echo -n "Launching apache on config file $AP_CONF_FILE ... "
+	echo
+	echo -ne "\rLaunching apache on config file $AP_CONF_FILE ... "
 
 	sudo $AP_BIN -X -f $AP_CONF_FILE &
 
 	wait_pid_exists
 	
 	echo
-	read -r -p 'Press [enter] to restart apache, enter [q] to stop apache and exit: ' var
+	read -r -n 1 -p $'\nPress [enter] to restart apache, enter [q] to stop apache and exit: ' var
 
 	if [ "$var" == "q" ]; then
 		break
@@ -199,8 +200,8 @@ done
 # SHUT-DOWN
 # -----------------------------------------------------------------------
 
-echo
-echo -n "Bailing out ... "
+echo -e "\n"
+echo -ne "\rBailing out ... "
 
 if [ -f $AP_PID_FILE ]; then
 	sudo kill -TERM $(cat $AP_PID_FILE)
