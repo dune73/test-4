@@ -217,7 +217,7 @@ $> sudo ./bin/httpd -X -f conf/httpd.conf_fastcgid
 
 Our test script is available at [http://localhost/info.php](http://localhost/info.php).
 
-![Screenshot: phpinfo()](https://www.netnea.com/files/apache-tutorial-3-screenshot-phpinfo.png)
+![Screenshot: phpinfo()](https://www.netnea.com/files/apache-tutorial-3-screenshot-phpi.png)
 
 phpinfo gives you a comprehensive status report in your browser.
 
