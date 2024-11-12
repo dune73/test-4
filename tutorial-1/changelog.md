@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2024-11-06: Update Apache (2.4.62), apr (1.7.5)
 * 2023-09-30: Update Apache (2.4.57)
 * 2023-08-07: Added bzip2 to list of packages that have to be installed
 * 2023-03-08: Update Apache (2.4.56), apr-util (1.6.3)

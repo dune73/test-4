@@ -1,5 +1,6 @@
 ##### Changelog
 
+* 2024-11-08: Updated CRS version from 3.3.5 to 3.3.7
 * 2024-01-13: Updated CRS version from 3.3.4 to 3.3.5
 * 2023-03-10: Add SecRequestBodyJsonDepthLimit directive
 * 2022-11-25: Removed unnecessary sudo from ln comand in step 1
