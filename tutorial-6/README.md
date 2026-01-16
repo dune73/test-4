@@ -23,20 +23,20 @@ We previously downloaded the source code for the web server to <i>/usr/src/apach
 $> sudo mkdir /usr/src/modsecurity
 $> sudo chown `whoami` /usr/src/modsecurity
 $> cd /usr/src/modsecurity
-$> wget https://github.com/SpiderLabs/ModSecurity/releases/download/v2.9.7/modsecurity-2.9.7.tar.gz
+$> wget https://github.com/owasp-modsecurity/ModSecurity/releases/download/v2.9.12/modsecurity-v2.9.12.tar.gz
 ```
 
 Compressed, the source code is just over four megabytes in size. We now need to verify the checksum. It is provided in SHA256 format.
 
 ```bash
-$> wget https://github.com/SpiderLabs/ModSecurity/releases/download/v2.9.7/modsecurity-2.9.7.tar.gz.sha256
-$> sha256sum --check modsecurity-2.9.7.tar.gz.sha256
+$> wget https://github.com/owasp-modsecurity/ModSecurity/releases/download/v2.9.12/modsecurity-v2.9.12.tar.gz.sha256
+$> sha256sum --check modsecurity-2.9.12.tar.gz.sha256
 ```
 
 We expect the following response:
 
 ```bash
-modsecurity-2.9.7.tar.gz: OK
+modsecurity-2.9.12.tar.gz: OK
 ```
 
 ### Step 2: Unpacking and configuring the compiler
@@ -51,9 +51,9 @@ We now unpack the source code and initiate the configuration. But before this it
 The stage is thus set and we are ready for ModSecurity.
 
 ```bash
-$> tar -xvzf modsecurity-2.9.7.tar.gz
+$> tar -xvzf modsecurity-2.9.12.tar.gz
 ...
-$> cd modsecurity-2.9.7
+$> cd modsecurity-2.9.12
 $> ./configure --with-apxs=/apache/bin/apxs \
 --with-apr=/usr/local/apr/bin/apr-1-config \
 --with-pcre=/usr/bin/pcre-config
@@ -715,7 +715,7 @@ We have reached the end of this tutorial. *ModSecurity* is an important componen
 
 * Apache [https://httpd.apache.org](http://httpd.apache.org)
 * ModSecurity [https://www.modsecurity.org](http://www.modsecurity.org)
-* ModSecurity Reference Manual [https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual](https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual)
+* ModSecurity Reference Manual [https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-%28v2.x%29](https://github.com/owasp-modsecurity/ModSecurity/wiki/Reference-Manual-%28v2.x%29)
 
 ### License / Copying / Further use
 
