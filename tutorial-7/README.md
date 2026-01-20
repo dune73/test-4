@@ -24,32 +24,32 @@ The ModSecurity Core Rule Set are being developed under the umbrella of *OWASP*,
 
 ```
 $> cd /apache/conf
-$> wget https://github.com/coreruleset/coreruleset/archive/v3.3.7.tar.gz
-$> tar -xvzf v3.3.7.tar.gz
-coreruleset-3.3.7
-coreruleset-3.3.7/
-coreruleset-3.3.7/.github/
-coreruleset-3.3.7/.github/ISSUE_TEMPLATE.md
-coreruleset-3.3.7/.gitignore
-coreruleset-3.3.7/.gitmodules
-coreruleset-3.3.7/.travis.yml
-coreruleset-3.3.7/CHANGES
-coreruleset-3.3.7/IDNUMBERING
-coreruleset-3.3.7/INSTALL
-coreruleset-3.3.7/KNOWN_BUGS
-coreruleset-3.3.7/LICENSE
-coreruleset-3.3.7/README.md
-coreruleset-3.3.7/crs-setup.conf.example
-coreruleset-3.3.7/documentation/
-coreruleset-3.3.7/documentation/OWASP-CRS-Documentation/
-coreruleset-3.3.7/documentation/README
+$> wget https://github.com/coreruleset/coreruleset/archive/refs/tags/v4.22.0.tar.gz
+$> tar -xvzf v4.22.0.tar.gz
+coreruleset-4.22.0
+coreruleset-4.22.0/
+coreruleset-4.22.0/.github/
+coreruleset-4.22.0/.github/ISSUE_TEMPLATE.md
+coreruleset-4.22.0/.gitignore
+coreruleset-4.22.0/.gitmodules
+coreruleset-4.22.0/.travis.yml
+coreruleset-4.22.0/CHANGES
+coreruleset-4.22.0/IDNUMBERING
+coreruleset-4.22.0/INSTALL
+coreruleset-4.22.0/KNOWN_BUGS
+coreruleset-4.22.0/LICENSE
+coreruleset-4.22.0/README.md
+coreruleset-4.22.0/crs-setup.conf.example
+coreruleset-4.22.0/documentation/
+coreruleset-4.22.0/documentation/OWASP-CRS-Documentation/
+coreruleset-4.22.0/documentation/README
 ...
-$> ln -s coreruleset-3.3.7 /apache/conf/crs
+$> ln -s coreruleset-4.22.0 /apache/conf/crs
 $> cp crs/crs-setup.conf.example crs/crs-setup.conf
-$> rm v3.3.7.tar.gz
+$> rm v4.22.0.tar.gz
 ```
 
-This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-3.3.7`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
+This unpacks the base part of the Core Rule Set in the directory `/apache/conf/coreruleset-4.22.0`. We create a link from `/apache/conf/crs` to this folder. Then we copy a file named `crs-setup.conf.example` to a new file `crs-setup.conf` and finally, we delete the Core Rule Set tar file.
 
 The setup file allows us to tweak many different settings. It is worth a look - if only to see what is included. However, we are OK with the default settings and will not touch the file: We just make sure it is available under the new filename `crs-setup.conf`. Then we can continue to update the configuration to include the rules files.
 
@@ -107,35 +107,33 @@ The center of the previous config snippet follows the include statement, which l
 
 ```bash
 $> ls -1 crs/rules/*.conf
-conf/crs/rules/REQUEST-901-INITIALIZATION.conf
-conf/crs/rules/REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
-conf/crs/rules/REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
-conf/crs/rules/REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf
-conf/crs/rules/REQUEST-903.9004-DOKUWIKI-EXCLUSION-RULES.conf
-conf/crs/rules/REQUEST-903.9005-CPANEL-EXCLUSION-RULES.conf
-conf/crs/rules/REQUEST-905-COMMON-EXCEPTIONS.conf
-conf/crs/rules/REQUEST-910-IP-REPUTATION.conf
-conf/crs/rules/REQUEST-911-METHOD-ENFORCEMENT.conf
-conf/crs/rules/REQUEST-912-DOS-PROTECTION.conf
-conf/crs/rules/REQUEST-913-SCANNER-DETECTION.conf
-conf/crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf
-conf/crs/rules/REQUEST-921-PROTOCOL-ATTACK.conf
-conf/crs/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf
-conf/crs/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf
-conf/crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf
-conf/crs/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf
-conf/crs/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf
-conf/crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf
-conf/crs/rules/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
-conf/crs/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf
-conf/crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf
-conf/crs/rules/RESPONSE-950-DATA-LEAKAGES.conf
-conf/crs/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf
-conf/crs/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf
-conf/crs/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf
-conf/crs/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf
-conf/crs/rules/RESPONSE-959-BLOCKING-EVALUATION.conf
-conf/crs/rules/RESPONSE-980-CORRELATION.conf
+crs/rules/REQUEST-901-INITIALIZATION.conf
+crs/rules/REQUEST-905-COMMON-EXCEPTIONS.conf
+crs/rules/REQUEST-911-METHOD-ENFORCEMENT.conf
+crs/rules/REQUEST-913-SCANNER-DETECTION.conf
+crs/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf
+crs/rules/REQUEST-921-PROTOCOL-ATTACK.conf
+crs/rules/REQUEST-922-MULTIPART-ATTACK.conf
+crs/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf
+crs/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf
+crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf
+crs/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf
+crs/rules/REQUEST-934-APPLICATION-ATTACK-GENERIC.conf
+crs/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf
+crs/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf
+crs/rules/REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
+crs/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf
+crs/rules/REQUEST-949-BLOCKING-EVALUATION.conf
+crs/rules/RESPONSE-950-DATA-LEAKAGES.conf
+crs/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf
+crs/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf
+crs/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf
+crs/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf
+crs/rules/RESPONSE-955-WEB-SHELLS.conf
+crs/rules/RESPONSE-956-DATA-LEAKAGES-RUBY.conf
+crs/rules/RESPONSE-959-BLOCKING-EVALUATION.conf
+crs/rules/RESPONSE-980-CORRELATION.conf
+
 ```
 
 The rule files are grouped by request and response rules. We start off with an initialization rule file. There are a lot of things commented out in the `crs-setup.conf` file. These values are simply set to their default value in the 901 rule file. This helps keep the config neat and tidy and still have all default settings applied. Then we have two application specific rule files for Wordpress and Drupal, followed by an exceptions file that is mostly irrelevant to us. Starting with 910, we have the real rules.
@@ -354,10 +352,11 @@ SecAction "id:90100,phase:5,pass,nolog,\
   setenv:ModSecTimeIn=%{TX.perf_modsecinbound},\
   setenv:ApplicationTime=%{TX.perf_application},\
   setenv:ModSecTimeOut=%{TX.perf_modsecoutbound},\
-  setenv:ModSecAnomalyScoreInPLs=%{tx.anomaly_score_pl1}-%{tx.anomaly_score_pl2}-%{tx.anomaly_score_pl3}-%{tx.anomaly_score_pl4},\
-  setenv:ModSecAnomalyScoreOutPLs=%{tx.outbound_anomaly_score_pl1}-%{tx.outbound_anomaly_score_pl2}-%{tx.outbound_anomaly_score_pl3}-%{tx.outbound_anomaly_score_pl4},\
-  setenv:ModSecAnomalyScoreIn=%{TX.anomaly_score},\
-  setenv:ModSecAnomalyScoreOut=%{TX.outbound_anomaly_score}"
+  setenv:ModSecAnomalyScoreInPLs=%{TX.inbound_anomaly_score_pl1}-%{TX.inbound_anomaly_score_pl2}-%{TX.inbound_anomaly_score_pl3}-%{TX.inbound_anomaly_score_pl4},\
+  setenv:ModSecAnomalyScoreOutPLs=%{TX.outbound_anomaly_score_pl1}-%{TX.outbound_anomaly_score_pl2}-%{TX.outbound_anomaly_score_pl3}-%{TX.outbound_anomaly_score_pl4},\
+  setenv:ModSecAnomalyScoreIn=%{TX.blocking_inbound_anomaly_score},\
+  setenv:ModSecAnomalyScoreOut=%{TX.blocking_outbound_anomaly_score}"
+
 
 SSLCertificateKeyFile   /etc/ssl/private/ssl-cert-snakeoil.key
 SSLCertificateFile      /etc/ssl/certs/ssl-cert-snakeoil.pem
@@ -418,15 +417,23 @@ For starters, we will do something easy. It is a request that will trigger exact
 
 ```bash
 $> curl localhost/index.html?exec=/bin/bash
-<html><body><h1>It works!</h1></body></html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>It works! Apache httpd</title>
+</head>
+<body>
+<p>It works!</p>
+</body>
+</html>
 ```
 As predicted, we have not been blocked, but let's check the logs to see if anything happened:
 
 ```bash
 $> tail -1 /apache/logs/access.log
-127.0.0.1 - - [2016-10-25 08:40:01.881647] "GET /index.html?exec=/bin/bash HTTP/1.1" 200 48 "-" …
-"curl/7.47.0" "-" localhost 127.0.0.1 40080 - - + "-" WA7@QX8AAQEAABC4maIAAAAV - - 98 234 -% 7672 2569 …
-117 479 5-0-0-0 0-0-0-0 5 0
+127.0.0.1 - - [2026-01-20 12:48:39.414556] "GET /index.html?exec=/bin/bash HTTP/1.1" 200 191 "-" …
+"curl/8.14.1" "-" 35054 localhost 127.0.0.1 80 - - + "-" aW9rl_uSFsccG5-mOAeHXQAAAAA - - 98 378 …
+-% 5848 3490 88 774 5-0-0-0 0-0-0-0 5 0
 ```
 
 It looks like a standard `GET` request with a status 200. The interesting bit is the second field from the end. In the log file tutorial, we defined a lengthy Apache access log format with two items reserved for the anomaly score. So far, these values have been empty; now they are being filled. The first of the two numbers at the end is the request's inbound anomaly score. Our submission of `/bin/bash` as parameter got us a score of 5. This is considered a critical rule violation by the Core Rules. An error level violation is set at 4, a warning at 3 and a notice at 2. However, if you look over the rules in all the files, most of them score as critical violations with a score of 5.
@@ -434,18 +441,26 @@ It looks like a standard `GET` request with a status 200. The interesting bit is
 But now we want to know what rule triggered the alert. This information can be found in the error log. We could simply tail the error log and look at the last entry but in a real world scenario, this entry might be buried somewhere in the middle of the error log. Therefore we find the request ID in the access log entry and then search for all entries in the error log that are related to that request ID.
 
 ```bash
-[2016-10-25 08:40:01.881938] [authz_core:debug] 127.0.0.1:42732 WA7@QX8AAQEAABC4maIAAAAV AH01626: …
-authorization result of Require all granted: granted
-[2016-10-25 08:40:01.882000] [authz_core:debug] 127.0.0.1:42732 WA7@QX8AAQEAABC4maIAAAAV AH01626: …
-authorization result of <RequireAny>: granted
-[2016-10-25 08:40:01.884172] [-:error] 127.0.0.1:42732 WA7@QX8AAQEAABC4maIAAAAV [client 127.0.0.1] …
-ModSecurity: Warning. Matched phrase "/bin/bash" at ARGS:exec. …
-[file "/apache/conf/crs/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf"] [line "448"] [id "932160"] …
-[rev "1"] [msg "Remote Command Execution: Unix Shell Code Found"] [data "Matched Data: /bin/bash found …
-within ARGS:exec: /bin/bash"] [severity "CRITICAL"] [ver "OWASP_CRS/3.1.0"] [maturity "1"] [accuracy "8"] …
-[tag "application-multi"] [tag "language-shell"] [tag "platform-unix"] [tag "attack-rce"] …
-[tag "OWASP_CRS/WEB_ATTACK/COMMAND_INJECTION"] [tag "WASCTC/WASC-31"] [tag "OWASP_TOP_10/A1"] …
-[tag "PCI/6.5.2"] [hostname "localhost"] [uri "/index.html"] [unique_id "WA7@QX8AAQEAABC4maIAAAAV"]
+[2026-01-20 12:48:39.416127] [authz_core:debug] 127.0.0.1:35054 aW9rl_uSFsccG5-mOAeHXQAAAAA …
+AH01626: authorization result of Require all granted: granted
+[2026-01-20 12:48:39.416180] [authz_core:debug] 127.0.0.1:35054 aW9rl_uSFsccG5-mOAeHXQAAAAA …
+AH01626: authorization result of <RequireAny>: granted
+[2026-01-20 12:48:39.417069] [security2:error] 127.0.0.1:35054 aW9rl_uSFsccG5-mOAeHXQAAAAA …
+ModSecurity: Warning. Matched phrase "bin/bash" at ARGS:exec. [file "/apache/conf/crs/rules/…
+REQUEST-932-APPLICATION-ATTACK-RCE.conf"] [line "650"] [id "932160"] [msg "Remote Command …
+Execution: Unix Shell Code Found"] [data "Matched Data: bin/bash found within ARGS:exec: …
+/bin/bash"] [severity "CRITICAL"] [ver "OWASP_CRS/4.22.0"] [tag "application-multi"] [tag …
+"language-shell"] [tag "platform-unix"] [tag "attack-rce"] [tag "paranoia-level/1"] [tag …
+"OWASP_CRS"] [tag "OWASP_CRS/ATTACK-RCE"] [tag "capec/1000/152/248/88"] [hostname "localhost"] …
+[uri "/index.html"] [unique_id "aW9rl_uSFsccG5-mOAeHXQAAAAA"]
+[2026-01-20 12:48:39.420014] [security2:error] 127.0.0.1:35054 aW9rl_uSFsccG5-mOAeHXQAAAAA …
+ModSecurity: Warning. Unconditional match in SecAction. [file …
+"/apache/conf/crs/rules/RESPONSE-980-CORRELATION.conf"] [line "98"] [id "980170"] [msg …
+"Anomaly Scores: (Inbound Scores: blocking=5, detection=5, per_pl=5-0-0-0, threshold=1000) -…
+(Outbound Scores: blocking=0, detection=0, per_pl=0-0-0-0, threshold=1000) - (SQLI=0, XSS=0, …
+RFI=0, LFI=0, RCE=5, PHPI=0, HTTP=0, SESS=0, COMBINED_SCORE=5)"] [ver "OWASP_CRS/4.22.0"] [tag …
+"reporting"] [tag "OWASP_CRS"] [hostname "localhost"] [uri "/index.html"] [unique_id …
+"aW9rl_uSFsccG5-mOAeHXQAAAAA"]
 ```
 
 The authorization modules report twice in the log file since we are running on level debug. But on the third line, we see the rule alert we are looking for. Let's look at this in detail. The Core Rule Set messages contain much more information than normal Apache messages, making it worthwhile to discuss the log format once more.
@@ -467,17 +482,18 @@ $> nikto -h localhost
 + Target IP:          127.0.0.1
 + Target Hostname:    localhost
 + Target Port:        80
-+ Start Time:         2019-03-21 07:50:40 (GMT1)
++ Start Time:         2026-01-20 13:28:49 (GMT1)
 ---------------------------------------------------------------------------
 + Server: Apache
-+ Server leaks inodes via ETags, header found with file /, fields: 0x2d 0x56852b3a6389e 
 + The anti-clickjacking X-Frame-Options header is not present.
 + No CGI Directories found (use '-C all' to force check all possible dirs)
-+ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD 
++ Server leaks inodes via ETags, header found with file /index.html, fields: 0xbf 0x642fce432f300
++ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD
 + 6544 items checked: 0 error(s) and 3 item(s) reported on remote host
-+ End Time:           2019-03-21 07:51:19 (GMT1) (39 seconds)
++ End Time:           2026-01-20 13:29:05 (GMT1) (16 seconds)
 ---------------------------------------------------------------------------
 + 1 host(s) tested
+
 ```
 
 This scan should have triggered numerous *ModSecurity alarms* on the server. Let’s take a close look at the *Apache error log*. In my case, there were over 13,000 entries in the error log. Combine this with the authorization messages and infos on many 404s (Nikto probes for files that do not exist on the server) and you end up with a fast-growing error log. The single Nikto run resulted in an 11 MB logfile. Looking over the audit log tree reveals 92 MB of logs. It's obvious: you need to keep a close eye on these log files or your server will collapse due to denial of service via log file exhaustion.
@@ -493,7 +509,7 @@ alias meldata='grep -o "\[data [^]]*" | cut -d\" -f2'
 alias melfile='grep -o "\[file [^]]*" | cut -d\" -f2'
 alias melhostname='grep -o "\[hostname [^]]*" | cut -d\" -f2'
 alias melid='grep -o "\[id [^]]*" | cut -d\" -f2'
-alias melip='grep -o "\[client [^]]*" | cut -b9-'
+alias melip='grep -E -o "error\] [^ ]*" | cut -d\  -f2 | sed -e "s/:[0-9]\{4,\}//"'
 alias melidmsg='sed -e "s/.*\[id \"//" -e "s/\([0-9]*\).*\[msg \"/\1 /" -e "s/\"\].*//" -e "s/(Total .*/(Total ...) .../" -e "s/Incoming and Outgoing Score: [0-9]* [0-9]*/Incoming and Outgoing Score: .../"
 alias melline='grep -o "\[line [^]]*" | cut -d\" -f2'
 alias melmatch='grep -o " at [^\ ]*\. \[file" | sed -e "s/\. \[file//" | cut -b5-'
