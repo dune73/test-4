@@ -524,88 +524,94 @@ These abbreviations all start with the prefix *mel*, short for *ModSecurity erro
 
 ```
 $> cat logs/error.log | melid | tail
+980170
+913100
+980170
+913100
+980170
+913100
+980170
+913100
 920440
-913100
-913100
-913100
-913100
-913100
-913100
-913100
-913100
-920440
+980170
 ```
 
 This seems to do the job. So let’s extend the example a few steps:
 
 ```
 $> cat logs/error.log | melid | sort | uniq -c | sort -n
-      1 920220
-      1 932115
+      1 932125
       2 920280
-      2 941140
+      2 921190
+      2 932380
+      3 942151
       3 942270
-      4 933150
+      4 932260
+      5 920500
       5 942100
-      6 932110
-      7 911100
-      8 932105
-     13 932100
-     15 941170
-     15 941210
+      8 932230
+      9 911100
+      9 942540
+     16 941170
+     16 941210
      17 920170
-     29 930130
-     35 932150
+     20 933150
+     44 932235
      67 933130
-     70 933160
+     69 933160
+     75 932250
     111 932160
-    113 941180
     114 920270
+    114 930130
+    119 941180
     140 931110
-    166 930120
-    172 930100
-    224 920440
-    245 941110
-    247 941100
-    247 941160
-    448 930110
+    171 930120
+    244 941100
+    254 920440
+    273 941110
+    277 941160
+    282 930100
+    314 941390
+    539 930110
    2262 931120
-   2328 913120
-   6168 913100
-$> cat logs/error.log | melid | sort | uniq -c | sort -n | while read STR; do echo -n "$STR "; \
-ID=$(echo "$STR" | sed -e "s/.*\ //"); grep $ID logs/error.log | head -1 | melmsg; done
-1 920220 URL Encoding Abuse Attack Attempt
-1 932115 Remote Command Execution: Windows Command Injection
-2 920280 Request Missing a Host Header
-2 941140 XSS Filter - Category 4: Javascript URI Vector
-3 942270 Looking for basic sql injection. Common attack string for mysql, oracle and others.
-4 933150 PHP Injection Attack: High-Risk PHP Function Name Found
-5 942100 SQL Injection Attack Detected via libinjection
-6 932110 Remote Command Execution: Windows Command Injection
-7 911100 Method is not allowed by policy
-8 932105 Remote Command Execution: Unix Command Injection
-13 932100 Remote Command Execution: Unix Command Injection
-15 941170 NoScript XSS InjectionChecker: Attribute Injection
-15 941210 IE XSS Filters - Attack Detected.
-17 920170 GET or HEAD Request with Body Content.
-29 930130 Restricted File Access Attempt
-35 932150 Remote Command Execution: Direct Unix Command Execution
-67 933130 PHP Injection Attack: Variables Found
-70 933160 PHP Injection Attack: High-Risk PHP Function Call Found
-111 932160 Remote Command Execution: Unix Shell Code Found
-113 941180 Node-Validator Blacklist Keywords
-114 920270 Invalid character in request (null character)
-140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter Name …
-166 930120 OS File Access Attempt
-172 930100 Path Traversal Attack (/../)
-224 920440 URL file extension is restricted by policy
-245 941110 XSS Filter - Category 1: Script Tag Vector
-247 941100 XSS Attack Detected via libinjection
-247 941160 NoScript XSS InjectionChecker: HTML Injection
-448 930110 Path Traversal Attack (/../)
-2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing Question …
-2328 913120 Found request filename/argument associated with security scanner
-6168 913100 Found User-Agent associated with security scanner
+   6207 913100
+   6207 980170
+$> cat logs/error.log | grep -v \"980170 | melidmsg | sucs
+      1 932125 Remote Command Execution: Windows Powershell Alias Command Injection
+      2 920280 Request Missing a Host Header
+      2 921190 HTTP Splitting (CR/LF in request filename detected)
+      2 932380 Remote Command Execution: Windows Command Injection
+      3 942151 SQL Injection Attack: SQL function name detected
+      3 942270 Looking for basic sql injection. Common attack string for mysql, oracle and others
+      4 932260 Remote Command Execution: Direct Unix Command Execution
+      5 920500 Attempt to access a backup or working file
+      5 942100 SQL Injection Attack Detected via libinjection
+      8 932230 Remote Command Execution: Unix Command Injection (2-3 chars)
+      9 911100 Method is not allowed by policy
+      9 942540 SQL Authentication bypass (split query)
+     16 941170 NoScript XSS InjectionChecker: Attribute Injection
+     16 941210 Javascript Word Detected
+     17 920170 GET or HEAD Request with Body Content
+     20 933150 PHP Injection Attack: High-Risk PHP Function Name Found
+     44 932235 Remote Command Execution: Unix Command Injection (command without evasion)
+     67 933130 PHP Injection Attack: Variables Found
+     69 933160 PHP Injection Attack: High-Risk PHP Function Call Found
+     75 932250 Remote Command Execution: Direct Unix Command Execution
+    111 932160 Remote Command Execution: Unix Shell Code Found
+    114 920270 Invalid character in request (null character)
+    114 930130 Restricted File Access Attempt
+    119 941180 Node-Validator Deny List Keywords
+    140 931110 Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable Parameter ...
+    171 930120 OS File Access Attempt
+    244 941100 XSS Attack Detected via libinjection
+    254 920440 URL file extension is restricted by policy
+    273 941110 XSS Filter - Category 1: Script Tag Vector
+    277 941160 NoScript XSS InjectionChecker: HTML Injection
+    282 930100 Path Traversal Attack (/../) or (/.../)
+    314 941390 Javascript method detected
+    539 930110 Path Traversal Attack (/../) or (/.../)
+   2262 931120 Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing ...
+   6207 913100 Found User-Agent associated with security scanner
 ```
 
 This, we can work with. But it’s perhaps necessary to explain the *one-liners*. We extract the rule IDs from the *error log*, then *sort* them, sum them together in a list of found IDs (*uniq -c*) and sort again by the numbers found. That’s the first *one-liner*. A relationship between the individual rules is still lacking, because there’s not much we can do with the ID number yet. We get the names from the *error log* again by looking through the previously run test line-by-line in a loop. We out the ID that we have into this loop (`$STR`). Then we have to separate the number of found items and the IDs again. This is done using an embedded sub-command (`ID=$(echo "$STR" | sed -e "s/.*\ //")`). We then use the IDs we just found to search the *error log* once more for an entry, but take only the first one, extract the *msg* part and display it. Done.
@@ -741,7 +747,10 @@ $> curl -v -H "Accept;" http://localhost/index.html
 > Accept:
 ...
 $> tail /apache/logs/error.log | melidmsg
-920300 Request Missing an Accept Header
+...
+920310 Request Has an Empty Accept Header
+920600 Illegal Accept header: charset parameter
+...
 ```
 
 So the rule has been triggered as desired. Let us now exclude the rule. We have multiple options and we start with the simplest one: We exclude the rule at startup time for Apache. This means it removes the rule from the set of loaded rules and no processor cycles will be spent on the rule once the server has started. Of course, we can only remove things which have been loaded before. So this directive has to be placed after the CRS include statement. In the config recipe earlier in this tutorial, we reserved some space for these sorts of exclusion rules. We fill in our exclusion directive in this location:
