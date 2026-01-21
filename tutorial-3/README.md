@@ -24,6 +24,7 @@ ServerAdmin             root@localhost
 ServerRoot              /apache
 User                    www-data
 Group                   www-data
+PidFile                 logs/httpd.pid
 
 ServerTokens            Prod
 UseCanonicalName        On
