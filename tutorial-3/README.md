@@ -74,7 +74,7 @@ DocumentRoot            /apache/htdocs
 
         Options          ExecCGI
 
-        FCGIWrapper      /apache/bin/php-fcgi-starter/php-fcgi-starter
+        FcgidWrapper      /apache/bin/php-fcgi-starter/php-fcgi-starter .php
 
       </Directory>
 
@@ -85,7 +85,7 @@ DocumentRoot            /apache/htdocs
 I will no longer be discussing the overall configuration, but will instead only be focusing on the differences from Tutorial 2. There are three new modules:
 Added to the _suEXEC_ and _FCGI_ modules is the _Mime module_, which enables us to assign the _.php_ file suffix to the _FCGI daemon_. It is assigned using the _AddHandler directive_. 
 
-The _/apache/htdocs_ directory now needs the additional _ExecCGI_ option. And finally, the _FCGIWrapper_. This is the connection between the web server and the _FCGI daemon_ yet to be configured. Once the first request using the _.php_ suffix is received by the web server, the server calls a _wrapper script_, starting the _FCGI daemon_, which from this time on handles the _PHP requests_.
+The _/apache/htdocs_ directory now needs the additional _ExecCGI_ option. And finally, the _FcgidWrapper_. This is the connection between the web server and the _FCGI daemon_ yet to be configured. Once the first request using the _.php_ suffix is received by the web server, the server calls a _wrapper script_, starting the _FCGI daemon_, which from this time on handles the _PHP requests_.
 
 _FastCGI_ is a method for executing dynamic program code from a web server. It is a very fast method which for the most part leaves the server untouched and runs the application on a separate daemon. To increase the speed, _FastCGI_ provides multiple instances of this daemon, allowing requests to be processed without having to wait. In practice, this is a promising gain in performance and, more importantly, an architecture that saves memory, as will be discussed in more detail below.
 
